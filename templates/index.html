@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Helper</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>LeetCode Helper</h1>
+                <div class="timer-container">
+                    <span class="timer" id="timer" contenteditable="true" title="Click to edit time">25:00</span>
+                    <div class="timer-controls">
+                        <button id="startTimer" class="timer-btn">start</button>
+                        <button id="resetTimer" class="timer-btn">reset</button>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </div>
+        <canvas id="particlesCanvas" class="particles-canvas"></canvas>
+        <div class="main-content">
+            <div class="chat-section">
+                <div class="chat-box">
+                </div>
+                <div class="input-area" id="inputArea">
+                    <input type="text" id="problemInput" placeholder="What problem are you working on?">
+                    <button id="getHintBtn">Get Hint</button>
+                </div>
+                <div class="new-problem-area" id="newProblemArea" style="display: none;">
+                    <button id="newProblemBtn">New Problem</button>
+                    <button id="anotherHintBtn">Another Hint</button>
+                </div>
+            </div>
+            <div class="context-section">
+                <h3>Additional Context</h3>
+                <textarea id="contextInput" placeholder="Tell me about your approach, code, or what you're stuck on..."></textarea>
+                <div class="context-info">
+                    <p>The more context you provide, the better hints I can give!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
