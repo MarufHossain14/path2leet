@@ -3,53 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f0f2f5">
+    <meta name="color-scheme" content="light dark">
     <title>LeetCode Helper</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <!-- Skip to content link for screen readers -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <div class="container">
         <div class="header">
             <div class="header-left">
                 <h1>LeetCode Helper</h1>
                 <div class="timer-container">
-                    <span class="timer" id="timer" contenteditable="true" title="Click to edit time">25:00</span>
+                    <label for="timer" class="visually-hidden">Timer</label>
+                    <input type="text" id="timer" class="timer" value="25:00" aria-label="Timer" inputmode="numeric" pattern="\d{1,2}:\d{2}">
                     <div class="timer-controls">
-                        <button id="startTimer" class="timer-btn">start</button>
-                        <button id="resetTimer" class="timer-btn">reset</button>
+                        <button id="startTimer" class="timer-btn" aria-label="Start timer">start</button>
+                        <button id="resetTimer" class="timer-btn" aria-label="Reset timer">reset</button>
                     </div>
                 </div>
             </div>
             <div class="header-right">
-                <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+                <button id="particlesToggle" class="particles-toggle" aria-label="Toggle particles effect" aria-pressed="false">
+                    <span class="particles-icon">✨</span>
+                </button>
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode" aria-pressed="false">
                     <span class="theme-icon">🌙</span>
                 </button>
             </div>
         </div>
         <canvas id="particlesCanvas" class="particles-canvas"></canvas>
-        <div class="main-content">
+        <main id="main-content" class="main-content" role="main">
             <div class="chat-section">
-                <div class="chat-box">
+                <div class="chat-box" role="log" aria-live="polite" aria-relevant="additions" aria-label="Chat messages">
                 </div>
-                <div class="input-area" id="inputArea">
-                    <input type="text" id="problemInput" placeholder="What problem are you working on?">
-                    <button id="getHintBtn">Get Hint</button>
-                </div>
-                <div class="new-problem-area" id="newProblemArea" style="display: none;">
-                    <button id="newProblemBtn">New Problem</button>
-                    <button id="anotherHintBtn">Another Hint</button>
+                <form class="input-area" id="inputArea" role="form" aria-label="Problem input form">
+                    <label for="problemInput" class="visually-hidden">Problem description</label>
+                    <input type="text" id="problemInput" placeholder="What problem are you working on?" aria-describedby="problem-help">
+                    <button type="submit" id="getHintBtn" aria-label="Get hint for current problem">Get Hint</button>
+                    <div id="problem-help" class="visually-hidden">Enter the LeetCode problem name or number you're working on</div>
+                </form>
+                <div class="new-problem-area" id="newProblemArea" style="display: none;" role="group" aria-label="Problem actions">
+                    <button id="newProblemBtn" aria-label="Start a new problem">New Problem</button>
+                    <button id="anotherHintBtn" aria-label="Get another hint for current problem">Another Hint</button>
                 </div>
             </div>
-            <div class="context-section">
+            <aside class="context-section" role="complementary" aria-label="Additional context">
                 <h3>Additional Context</h3>
-                <textarea id="contextInput" placeholder="Tell me about your approach, code, or what you're stuck on..."></textarea>
-                <div class="context-info">
+                <label for="contextInput" class="visually-hidden">Additional context for better hints</label>
+                <textarea id="contextInput" placeholder="Tell me about your approach, code, or what you're stuck on..." aria-describedby="context-help"></textarea>
+                <div class="context-info" id="context-help">
                     <p>The more context you provide, the better hints I can give!</p>
                 </div>
-            </div>
-        </div>
+            </aside>
+        </main>
     </div>
 
 

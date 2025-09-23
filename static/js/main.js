@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function parseTimeInput(input) {
         // Handle various input formats: "25:00", "25", "25.5", "1500" (seconds)
         const trimmed = input.trim();
-        
+
         // Format: MM:SS
         if (/^\d{1,2}:\d{2}$/.test(trimmed)) {
             const [minutes, seconds] = trimmed.split(':').map(Number);
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return minutes * 60 + seconds;
             }
         }
-        
+
         // Format: MM (minutes only)
         if (/^\d+$/.test(trimmed)) {
             const minutes = parseInt(trimmed);
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return minutes * 60;
             }
         }
-        
+
         // Format: MM.SS (decimal minutes)
         if (/^\d+\.\d+$/.test(trimmed)) {
             const minutes = parseFloat(trimmed);
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return Math.round(minutes * 60);
             }
         }
-        
+
         // Format: SSSS (seconds only)
         if (/^\d{3,4}$/.test(trimmed)) {
             const seconds = parseInt(trimmed);
@@ -123,18 +123,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return seconds;
             }
         }
-        
+
         return null; // Invalid format
     }
 
     function updateTimerDisplay() {
-        timerDisplay.textContent = formatTime(timeLeft);
+        timerDisplay.value = formatTime(timeLeft);
     }
 
     function handleTimerEdit() {
-        const input = timerDisplay.textContent;
+        const input = timerDisplay.value;
         const newTimeInSeconds = parseTimeInput(input);
-        
+
         if (newTimeInSeconds !== null) {
             // Stop timer if running
             if (isRunning) {
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 startTimerBtn.textContent = 'start';
                 startTimerBtn.classList.remove('running');
             }
-            
+
             timeLeft = newTimeInSeconds;
             savedTime = newTimeInSeconds; // Save the new time as the reset time
             updateTimerDisplay();
@@ -158,11 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
             isRunning = true;
             startTimerBtn.textContent = 'pause';
             startTimerBtn.classList.add('running');
-            
+
             timerInterval = setInterval(() => {
                 timeLeft--;
                 updateTimerDisplay();
-                
+
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     isRunning = false;
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     startTimerBtn.classList.remove('running');
                     timeLeft = savedTime; // Reset to saved time instead of 25:00
                     updateTimerDisplay();
-                    
+
                     // Optional: Add notification or sound here
                     if (Notification.permission === 'granted') {
                         new Notification('Pomodoro Complete!', {
@@ -208,10 +208,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        
+
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         updateThemeIcon(newTheme);
+
+        // Update aria-pressed state
+        themeToggle.setAttribute('aria-pressed', newTheme === 'dark');
+
+        // Update meta theme-color for mobile browsers
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+            metaThemeColor.content = newTheme === 'dark' ? '#1a1a1a' : '#f0f2f5';
+        }
     }
 
     function updateThemeIcon(theme) {
@@ -263,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         problemInput.value = ''; // Clear the input
         contextInput.value = ''; // Clear the context
         problemInput.focus(); // Focus on the input
-        
+
         // Reset conversation state
         currentProblem = '';
         currentContext = '';
@@ -280,20 +289,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Disable the another hint button to prevent multiple clicks
         anotherHintBtn.disabled = true;
-        
+
         // Display a loading message
         const loadingMessage = displayMessage('Thinking...', 'bot');
         loadingMessage.classList.add('loading');
 
         try {
             // Prepare request with conversation history
-            const requestBody = { 
+            const requestBody = {
                 problemName: currentProblem,
                 context: currentContext,
                 conversationHistory: conversationHistory,
                 requestType: 'another_hint'
             };
-            
+
             const response = await fetch('/get_hint', {
                 method: 'POST',
                 headers: {
@@ -312,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Remove loading message
             loadingMessage.remove();
-            
+
             // Display the new hint
             let botResponse = data.hint;
             displayMessage(botResponse, 'bot');
@@ -340,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleHintRequest() {
         const userInput = problemInput.value.trim();
         const context = contextInput.value.trim();
-        
+
         if (!userInput) {
             return; // Don't send empty messages
         }
@@ -355,14 +364,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // 3. Make the actual API call to our Flask backend
-            const requestBody = { 
+            const requestBody = {
                 problemName: userInput,
                 requestType: 'first_hint'
             };
             if (context) {
                 requestBody.context = context;
             }
-            
+
             const response = await fetch('/get_hint', {
                 method: 'POST',
                 headers: {
@@ -383,8 +392,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             // 5. Remove the loading message
-            loadingMessage.remove(); 
-            
+            loadingMessage.remove();
+
             // 6. Display the bot's actual response
             let botResponse = data.hint;
             displayMessage(botResponse, 'bot');
@@ -399,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showNewProblemMode();
                 currentProblem = userInput;
                 currentContext = context;
-                
+
                 // Store this interaction in conversation history
                 conversationHistory.push({
                     userInput: userInput,
@@ -420,6 +429,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
+    // Handle form submission
+    inputArea.addEventListener('submit', (event) => {
+        event.preventDefault();
+        handleHintRequest();
+    });
+
     getHintBtn.addEventListener('click', handleHintRequest);
 
     problemInput.addEventListener('keypress', (event) => {
@@ -431,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // New problem button event listener
     newProblemBtn.addEventListener('click', showInputMode);
-    
+
     // Another hint button event listener
     anotherHintBtn.addEventListener('click', handleAnotherHint);
 
@@ -441,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Timer event listeners
     startTimerBtn.addEventListener('click', startTimer);
     resetTimerBtn.addEventListener('click', resetTimer);
-    
+
     // Timer edit event listeners
     timerDisplay.addEventListener('blur', handleTimerEdit);
     timerDisplay.addEventListener('keydown', (e) => {
@@ -453,6 +468,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTimerDisplay(); // Revert changes
             timerDisplay.blur();
         }
+    });
+
+    // Timer input validation
+    timerDisplay.addEventListener('input', (e) => {
+        // Allow only digits and colon
+        e.target.value = e.target.value.replace(/[^0-9:]/g, '');
     });
 
     // Particles toggle event listener
@@ -471,6 +492,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initParticles(); // Initialize particles
     initParticlesState(); // Initialize particles state
     setInputState(false); // Ensure input/button are enabled and focused on load
+
+    // Initialize ARIA states
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    themeToggle.setAttribute('aria-pressed', currentTheme === 'dark');
+    particlesToggle.setAttribute('aria-pressed', particlesActive);
     promptBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             let promptText = '';
@@ -486,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedState = localStorage.getItem('particlesActive');
         // If there is no saved state, default to true. Otherwise, use the saved state.
         const shouldBeActive = savedState === null ? true : savedState === 'true';
-        
+
         if (shouldBeActive) {
             particlesActive = true;
             particlesCanvas.classList.add('active');
@@ -505,11 +531,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function initParticles() {
         particlesCanvas.width = window.innerWidth;
         particlesCanvas.height = window.innerHeight;
-        
+
         // Create particles
         particles = [];
         const particleCount = Math.min(200, Math.floor((window.innerWidth * window.innerHeight) / 5000));
-        
+
         for (let i = 0; i < particleCount; i++) {
             particles.push(new Particle());
         }
@@ -519,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!particlesActive) return;
 
         ctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
-        
+
         particles.forEach(particle => {
             particle.update();
             particle.draw();
@@ -530,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleParticles() {
         particlesActive = !particlesActive;
-        
+
         if (particlesActive) {
             particlesCanvas.classList.add('active');
             particlesToggle.classList.add('active');
@@ -543,8 +569,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 animationId = null;
             }
         }
-        
+
+        // Update aria-pressed state
+        particlesToggle.setAttribute('aria-pressed', particlesActive);
+
         // Save preference
         localStorage.setItem('particlesActive', particlesActive);
     }
-}); 
+});
