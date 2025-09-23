@@ -200,26 +200,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Theme Management ---
     function initTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
+        const savedTheme = localStorage.getItem('theme'); // 'light' | 'dark' | 'system' | null
+
+        const applyTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) {
+                metaThemeColor.content = theme === 'dark' ? '#1a1a1a' : '#f0f2f5';
+            }
+            // update aria-pressed for toggle
+            if (typeof themeToggle !== 'undefined' && themeToggle) {
+                themeToggle.setAttribute('aria-pressed', theme === 'dark');
+            }
+        };
+
+        const prefersDarkMatcher = window.matchMedia('(prefers-color-scheme: dark)');
+
+        // If no theme saved or set to 'system', follow system preference
+        if (!savedTheme || savedTheme === 'system') {
+            const systemTheme = prefersDarkMatcher.matches ? 'dark' : 'light';
+            applyTheme(systemTheme);
+            // Default to system for future loads if unset
+            if (!savedTheme) localStorage.setItem('theme', 'system');
+            // React to system changes if user stays in 'system' mode
+            prefersDarkMatcher.addEventListener('change', (e) => {
+                if (localStorage.getItem('theme') === 'system') {
+                    applyTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        } else {
+            applyTheme(savedTheme);
+        }
     }
 
     function toggleTheme() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        const savedTheme = localStorage.getItem('theme');
+        // Cycle: system -> light -> dark -> system
+        let nextSetting;
+        if (!savedTheme || savedTheme === 'system') nextSetting = 'light';
+        else if (savedTheme === 'light') nextSetting = 'dark';
+        else nextSetting = 'system';
 
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeIcon(newTheme);
+        localStorage.setItem('theme', nextSetting);
 
-        // Update aria-pressed state
-        themeToggle.setAttribute('aria-pressed', newTheme === 'dark');
-
-        // Update meta theme-color for mobile browsers
-        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-        if (metaThemeColor) {
-            metaThemeColor.content = newTheme === 'dark' ? '#1a1a1a' : '#f0f2f5';
+        if (nextSetting === 'system') {
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = systemDark ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+            themeToggle.setAttribute('aria-pressed', theme === 'dark');
+            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) metaThemeColor.content = theme === 'dark' ? '#1a1a1a' : '#f0f2f5';
+        } else {
+            document.documentElement.setAttribute('data-theme', nextSetting);
+            updateThemeIcon(nextSetting);
+            themeToggle.setAttribute('aria-pressed', nextSetting === 'dark');
+            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+            if (metaThemeColor) metaThemeColor.content = nextSetting === 'dark' ? '#1a1a1a' : '#f0f2f5';
         }
     }
 

@@ -42,6 +42,9 @@
     --z-tooltip: 1070;
     --z-toast: 1080;
     --z-codedex: 10000; /* Lower than 100000 but still high */
+
+    /* App background gradient (light) */
+    --app-bg-gradient: linear-gradient(135deg, #f6f9ff 0%, #eaf2ff 100%);
 }
 
 [data-theme="dark"] {
@@ -71,23 +74,43 @@
     --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 25px rgba(255, 215, 0, 0.2);
     --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.5);
+
+    /* App background gradient (dark) */
+    --app-bg-gradient: linear-gradient(135deg, #1e1e2f 0%, #313148 100%);
 }
 
 /* Dark mode background */
 [data-theme="dark"] body {
-    background-color: #0a0e27;
+    background: var(--app-bg-gradient);
 }
 
 /* Basic Reset & Body Styling */
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background-color: #f0f9ff;
+    background: var(--app-bg-gradient);
     display: flex; /* Use flexbox to center content */
     justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
     min-height: 100vh; /* Make body at least viewport height */
     transition: background-color 0.3s ease;
+}
+
+/* Comfort vignette overlays (static, no motion) */
+body {
+    background-image:
+        radial-gradient(1200px 800px at -10% -10%, rgba(255,255,255,0.35), rgba(255,255,255,0) 60%),
+        radial-gradient(1200px 800px at 110% 110%, rgba(255,255,255,0.25), rgba(255,255,255,0) 60%),
+        var(--app-bg-gradient);
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-size: auto, auto, cover;
+}
+
+[data-theme="dark"] body {
+    background-image:
+        radial-gradient(1200px 800px at -10% -10%, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%),
+        radial-gradient(1200px 800px at 110% 110%, rgba(255,255,255,0.04), rgba(255,255,255,0) 60%),
+        var(--app-bg-gradient);
 }
 
 /* Header styling */
@@ -220,16 +243,20 @@ body {
 
 .theme-icon {
     font-size: 1.2em;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.2s ease;
 }
 
-[data-theme="dark"] .theme-icon {
-    transform: rotate(180deg);
-}
+/* Show only one icon per theme */
+.theme-icon #icon-sun { display: inline; }
+.theme-icon #icon-moon { display: none; }
+[data-theme="dark"] .theme-icon #icon-sun { display: none; }
+[data-theme="dark"] .theme-icon #icon-moon { display: inline; }
 
 /* Container for the main application */
 .container {
     background-color: var(--bg-secondary);
+    background-image: var(--app-bg-gradient);
+    background-blend-mode: overlay; /* Let gradient tint the panel */
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
     width: 100%;

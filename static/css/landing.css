@@ -37,6 +37,9 @@
     --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 25px rgba(255, 215, 0, 0.3);
     --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+    /* Landing background gradient (light) */
+    --landing-bg-gradient: linear-gradient(135deg, #f6f9ff 0%, #eaf2ff 100%);
 }
 
 [data-theme="dark"] {
@@ -63,6 +66,9 @@
     --landing-footer-secondary: #cbd5e1;
     --landing-link: #93c5fd;
     --landing-link-hover: #dbeafe;
+
+    /* Landing background gradient (dark) */
+    --landing-bg-gradient: none;
 }
 
 * {
@@ -78,6 +84,11 @@ body {
     overflow-x: hidden;
     background-color: var(--bg-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Remove code texture on marketing page */
+body {
+    background-image: none;
 }
 
 /* Namespace landing page container to avoid conflicts */
