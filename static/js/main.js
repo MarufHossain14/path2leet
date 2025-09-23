@@ -524,6 +524,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Header sticky shadow on scroll
+    const headerEl = document.querySelector('.header');
+    const onScroll = () => {
+        if (!headerEl) return;
+        if (window.scrollY > 4) headerEl.classList.add('stuck');
+        else headerEl.classList.remove('stuck');
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
     // --- Initial Setup ---
     initTheme(); // Initialize theme on page load
     updateTimerDisplay(); // Initialize timer display

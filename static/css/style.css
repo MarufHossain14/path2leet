@@ -118,11 +118,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
     background-color: var(--bg-secondary);
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 10;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.3s ease;
 }
 
 .header-left {
@@ -134,15 +136,21 @@ body {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+}
+
+/* Header shadow on scroll */
+.header.stuck {
+    border-bottom-color: transparent;
+    box-shadow: 0 6px 20px var(--shadow-color);
 }
 
 /* Timer styling */
 .timer-container {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
+    gap: 10px;
+    padding: 6px 10px;
     background-color: var(--bg-tertiary);
     border-radius: 6px;
     border: 1px solid var(--border-color);
@@ -150,13 +158,13 @@ body {
 
 .timer {
     font-family: 'Courier New', monospace;
-    font-size: 1.2em;
+    font-size: 1.1em;
     font-weight: bold;
     color: var(--text-primary);
-    min-width: 60px;
+    min-width: 64px;
     text-align: center;
     cursor: pointer;
-    padding: 4px 6px;
+    padding: 4px 8px;
     border-radius: var(--radius-sm);
     transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     outline: none;
@@ -182,18 +190,18 @@ body {
 
 .timer-controls {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .timer-btn {
-    padding: 6px 12px;
+    padding: 6px 10px;
     background-color: transparent;
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 0.8em;
-    font-weight: 400;
+    font-weight: 600;
     transition: all 0.2s ease;
 }
 
@@ -813,6 +821,7 @@ h1 {
     justify-content: center;
     transition: all 0.3s ease;
     background-color: var(--bg-secondary);
+    color: var(--text-primary); /* Improve icon contrast in light mode */
 }
 
 .particles-toggle {
@@ -833,6 +842,11 @@ h1 {
 .particles-icon {
     font-size: 1.2em;
     transition: transform 0.3s ease;
+}
+
+/* Make SVG icon strokes a bit bolder for readability */
+.particles-icon svg {
+    stroke-width: 2;
 }
 
 .particles-toggle.active .particles-icon {
