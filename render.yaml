@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: path-2-leetcode
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
-    envVars:
-      - key: GEMINI_API_KEY
-        sync: false
