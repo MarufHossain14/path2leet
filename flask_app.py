@@ -34,10 +34,10 @@ def sanitize_input(text):
     """Sanitize user input to prevent prompt injection"""
     if not text:
         return ""
-    
+
     # Decode HTML entities
     text = html.unescape(text)
-    
+
     # Remove or escape dangerous patterns that could be used for prompt injection
     dangerous_patterns = [
         r'ignore previous instructions',
@@ -73,51 +73,51 @@ def sanitize_input(text):
         r'disregard your',
         r'ignore your'
     ]
-    
+
     for pattern in dangerous_patterns:
         text = re.sub(pattern, '[REDACTED]', text, flags=re.IGNORECASE)
-    
+
     # Remove any remaining control characters
     text = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', text)
-    
+
     # Limit length to prevent token flooding
     if len(text) > 2000:
         text = text[:2000] + "..."
-    
+
     return text.strip()
 
 def validate_problem_name(problem_name):
     """Validate problem name format"""
     if not problem_name:
         return False, "Problem name cannot be empty"
-    
+
     # Allow alphanumeric, spaces, hyphens, and common punctuation
     if not re.match(r'^[a-zA-Z0-9\s\-_.,()#]+$', problem_name):
         return False, "Invalid problem name format"
-    
+
     # Length limits
     if len(problem_name) > 100:
         return False, "Problem name too long"
-    
+
     return True, problem_name
 
 def sanitize_conversation_history(history):
     """Sanitize conversation history to prevent injection"""
     if not history:
         return []
-    
+
     sanitized_history = []
     for interaction in history[:10]:  # Limit to last 10 interactions
         if isinstance(interaction, dict):
             safe_user_input = sanitize_input(interaction.get('userInput', ''))
             safe_bot_response = sanitize_input(interaction.get('botResponse', ''))
-            
+
             if safe_user_input and safe_bot_response:
                 sanitized_history.append({
                     'userInput': safe_user_input,
                     'botResponse': safe_bot_response
                 })
-    
+
     return sanitized_history
 
 @app.route('/')
@@ -160,7 +160,7 @@ def get_hint():
 
     # --- AI Prompt Definition (Secure Approach) ---
     # Use structured approach to prevent direct user input injection
-    
+
     if request_type == 'first_hint':
         # Base system prompt without user input
         system_prompt = """You are a friendly and encouraging LeetCode Coach bot. Your primary goal is to help users who are stuck on a problem without discouraging them.
@@ -255,6 +255,3 @@ if __name__ == '__main__':
     # Production-ready configuration
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
-# For Vercel deployment
-app = app 
