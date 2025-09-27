@@ -1,190 +1,183 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeetCode Path Finder - AI-Powered Coding Hints</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <h2>LeetCode Coach</h2>
-            </div>
-            <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#how-it-works">How It Works</a>
-                <a href="/" class="cta-button">Try Now</a>
-            </div>
-        </div>
-    </nav>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Path2Leet — Hints for LeetCode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* --------- Design system (neutral, consistent) --------- */
+    :root{
+      --bg:#ffffff;          /* page background */
+      --text:#0f172a;        /* slate-900 */
+      --muted:#475569;       /* slate-600 */
+      --panel:#f8fafc;       /* slate-50 */
+      --border:#e2e8f0;      /* slate-200 */
+      --brand:#2563eb;       /* blue-600 */
+      --radius:10px;
+      --shadow:0 6px 18px rgba(2,6,23,.06);
+      --max:960px;
+      --space:56px;          /* vertical rhythm */
+    }
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-container">
-            <div class="hero-content">
-                <h1 class="hero-title">
-                    Master LeetCode with
-                    <span class="gradient-text">AI-Powered Hints</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Get personalized hints and guidance for LeetCode problems without spoiling the solution.
-                    Learn problem-solving strategies with our intelligent coaching system.
-                </p>
-                <div class="hero-buttons">
-                    <a href="/" class="primary-button">Start Learning</a>
-                    <a href="#how-it-works" class="secondary-button">Learn More</a>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <!-- Non-functional Chatbot UI -->
-                <div class="app-preview">
-                    <div class="app-header">
-                        <div class="header-left">
-                            <h1>LeetCode Coach</h1>
-                            <div class="timer-container">
-                                <span class="timer">25:00</span>
-                            </div>
-                        </div>
-                        <div class="header-right">
-                            <span class="built-by">Built by Maruf</span>
-                        </div>
-                    </div>
-                    <div class="main-content">
-                        <div class="chat-section">
-                            <div class="chat-box">
-                                <div class="chat-message user">I'm stuck on the 'Two Sum' problem.</div>
-                                <div class="chat-message bot">No problem! Can you tell me what you've tried so far?</div>
-                                <div class="chat-message user">I was thinking of using a nested loop, but it's too slow.</div>
-                                <div class="chat-message bot">That's a good start! You're right, nested loops work but can be slow. Think about a way to look up numbers you've already seen in a single step.</div>
-                            </div>
-                            <div class="input-area">
-                                <input type="text" value="What data structure is good for fast lookups?" readonly>
-                                <button>Get Hint</button>
-                            </div>
-                        </div>
-                        <div class="context-section">
-                            <h3>Additional Context</h3>
-                            <textarea readonly>My current code:
-function twoSum(nums, target) {
-  for (let i = 0; i < nums.length; i++) {
-    for (let j = i + 1; j < nums.length; j++) {
-      if (nums[i] + nums[j] === target) {
-        return [i, j];
+    /* Dark theme support */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --panel: #1e293b;
+        --border: #334155;
+        --brand: #3b82f6;
       }
     }
-  }
-}</textarea>
-                            <div class="context-info">
-                                <p>💡 Providing context helps me give you more targeted hints!</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:var(--bg);line-height:1.6}
+    .container{max-width:var(--max);margin:0 auto;padding:0 20px}
+
+    /* --------- Header --------- */
+    header{position:sticky;top:0;background:rgba(248,250,252,.85);backdrop-filter:saturate(160%) blur(6px);border-bottom:1px solid var(--border);z-index:50}
+    @media (prefers-color-scheme: dark) {
+      header{background:rgba(15,23,42,.85)}
+    }
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+    .brand{font-weight:700;letter-spacing:.2px;font-size:18px}
+    nav a{color:var(--muted);text-decoration:none;font-weight:600;margin-left:18px;transition:color 0.2s ease}
+    nav a:hover{color:var(--text)}
+    .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);padding:9px 14px;border-radius:var(--radius);text-decoration:none;font-weight:600;transition:all 0.2s ease}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(2,6,23,.1)}
+    .btn-primary{background:var(--brand);border-color:var(--brand);color:#fff}
+
+    /* --------- Sections --------- */
+    section{padding:var(--space) 0}
+    h1{font-size:clamp(28px,4vw,40px);line-height:1.15;margin:0 0 10px;font-weight:700}
+    h2{font-size:clamp(22px,3vw,28px);margin:0 0 10px;font-weight:600}
+    p.lead{color:var(--muted);margin:0;font-size:18px}
+
+    /* --------- Hero --------- */
+    .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}
+    .preview{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;min-height:500px}
+    .preview__head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);background:var(--bg);font-size:16px}
+    .header-left{display:flex;align-items:center}
+    .header-right{display:flex;align-items:center;gap:16px}
+    .timer-display{display:flex;align-items:center;gap:6px;font-size:14px}
+    .timer-value{font-weight:600;color:var(--text)}
+    .theme-toggle{display:flex;align-items:center;font-size:16px}
+    .preview{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .preview__head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--bg)}
+    .preview__body{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px}
+    .bubble{padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:14px}
+    .bubble.bot{background:#f1f5f9}
+    .input{display:flex;gap:8px}
+    .input input{flex:1;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--bg);font:inherit}
+
+    /* --------- Features --------- */
+    .grid{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}
+    .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;transition:transform 0.2s ease}
+    .card:hover{transform:translateY(-2px)}
+    .muted{color:var(--muted)}
+
+    /* --------- How --------- */
+    ol.steps{margin:0;padding-left:20px;color:var(--muted)}
+    ol.steps li{margin:6px 0}
+
+    /* --------- Footer --------- */
+    footer{border-top:1px solid var(--border);padding:24px 0;color:var(--muted);text-align:center}
+
+    /* --------- Responsive --------- */
+    @media (max-width:980px){.hero-grid,.preview__body{grid-template-columns:1fr}}
+    @media (max-width:720px){.grid{grid-template-columns:1fr}}
+    @media (max-width:640px){
+      .nav{flex-direction:column;gap:12px;align-items:flex-start}
+      nav{display:flex;flex-wrap:wrap;gap:12px;margin:0}
+      nav a{margin:0}
+    }
+
+    /* --------- Animations --------- */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero > div > div:first-child { animation: fadeInUp 0.6s ease-out; }
+    .preview { animation: fadeInUp 0.6s ease-out 0.2s both; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">Path2Leet</div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a class="btn btn-primary" href="/app">Try now</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <h1>Hints for LeetCode, without spoilers</h1>
+          <p class="lead">Share your approach, constraints, or code. Path2Leet returns focused prompts that nudge you to the pattern.</p>
+          <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+            <a class="btn btn-primary" href="/app">Start learning</a>
+            <a class="btn" href="#how">Learn more</a>
+          </div>
         </div>
+
+      </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="landing-container">
-            <h2 class="section-title">Why Choose LeetCode Coach?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3>AI-Powered Hints</h3>
-                    <p>Get intelligent, contextual hints that guide your thinking without giving away the solution.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h3>Personalized Guidance</h3>
-                    <p>Share your approach and get tailored hints that build on your current thinking.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⏱️</div>
-                    <h3>Pomodoro Timer</h3>
-                    <p>Stay focused with built-in time management to optimize your study sessions.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔄</div>
-                    <h3>Multiple Hints</h3>
-                    <p>Get different perspectives and approaches when you're stuck on a problem.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎨</div>
-                    <h3>Dark/Light Mode</h3>
-                    <p>Comfortable coding environment with theme switching and floating code particles.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Secure & Private</h3>
-                    <p>Your code and conversations are protected with advanced security measures.</p>
-                </div>
-            </div>
+    <section id="features">
+      <div class="container">
+        <h2>Why choose Path2Leet?</h2>
+        <div class="grid">
+          <div class="card">
+            <strong>Non‑spoiler hints</strong>
+            <div class="muted">Guidance that teaches patterns, not answers.</div>
+          </div>
+          <div class="card">
+            <strong>Context aware</strong>
+            <div class="muted">Hints adapt to your language and constraints.</div>
+          </div>
+          <div class="card">
+            <strong>Simple flows</strong>
+            <div class="muted">Clean UI with consistent spacing and type.</div>
+          </div>
         </div>
+      </div>
     </section>
 
-    <!-- How It Works Section -->
-    <section id="how-it-works" class="how-it-works">
-        <div class="landing-container">
-            <h2 class="section-title">How It Works</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Enter Problem</h3>
-                    <p>Type the LeetCode problem name or number you're working on.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Add Context</h3>
-                    <p>Share your current approach, code, or specific challenges you're facing.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Get Hints</h3>
-                    <p>Receive personalized hints that guide your thinking without spoiling the solution.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Learn & Improve</h3>
-                    <p>Build problem-solving skills with targeted guidance and practice.</p>
-                </div>
-            </div>
-        </div>
+    <section id="how">
+      <div class="container">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li>Enter problem name/number.</li>
+          <li>Add approach, code, and constraints.</li>
+          <li>Get focused hints (no spoilers).</li>
+          <li>Refine and practice.</li>
+        </ol>
+      </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="landing-container">
-            <h2>Ready to Level Up Your Coding Skills?</h2>
-            <p>Join thousands of developers who are improving their problem-solving abilities with AI-powered guidance.</p>
-            <a href="/" class="primary-button large">Start Your Learning Journey</a>
-        </div>
+    <section>
+      <div class="container" style="text-align:center">
+        <h2>Ready to level up?</h2>
+        <p class="lead">A minimal, consistent interface to build durable problem‑solving skills.</p>
+        <div style="margin-top:16px"><a class="btn btn-primary" href="/app">Start your journey</a></div>
+      </div>
     </section>
+  </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="landing-container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>LeetCode Coach</h3>
-                    <p>AI-powered hints for LeetCode problems</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Built by</h4>
-                    <a href="https://www.instagram.com/Maruf14hussain" target="_blank" rel="noopener">
-                        <svg class="instagram-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"/></svg>
-                        Maruf
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
+  <footer>
+    <div class="container">
+      Built by <a href="https://github.com/MarufHossain14" target="_blank" rel="noopener noreferrer" style="color:var(--brand);text-decoration:none">Maruf</a> • Path2Leet
+    </div>
+  </footer>
 </body>
 </html>
+
