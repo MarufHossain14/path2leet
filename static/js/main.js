@@ -10,8 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newProblemArea = document.getElementById('newProblemArea');
     const newProblemBtn = document.getElementById('newProblemBtn');
     const anotherHintBtn = document.getElementById('anotherHintBtn');
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = document.querySelector('.theme-icon');
+    const themeSelect = document.getElementById('themeSelect');
     const timerDisplay = document.getElementById('timer');
     const startTimerBtn = document.getElementById('startTimer');
     const resetTimerBtn = document.getElementById('resetTimer');
@@ -34,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let particlesActive = false;
     let animationId = null;
     let particles = [];
-    const ctx = particlesCanvas.getContext('2d');
+    let ctx = null;
 
     // Code symbols for particles
     const codeSymbols = ['{}', '[]', '()', '<>', '//', '/*', '*/', '=>', '&&', '||', '++', '--', '==', '!=', '+=', '-=', '*=', '/=', '%=', '<<', '>>', '&', '|', '^', '~', '!', '?', ':', ';', '=', '+', '-', '*', '/', '%', '.', ',', '_', '$', '#', '@'];
@@ -69,12 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         draw() {
+            if (!ctx) return;
+
             ctx.save();
             ctx.translate(this.x, this.y);
             ctx.rotate(this.rotation * Math.PI / 180);
             ctx.globalAlpha = this.opacity;
             ctx.font = `${this.size}px 'Courier New', monospace`;
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-primary');
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg');
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(this.symbol, 0, 0);
@@ -200,19 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Theme Management ---
     function initTheme() {
-        const savedTheme = localStorage.getItem('theme'); // 'light' | 'dark' | 'system' | null
+        const savedTheme = localStorage.getItem('theme') || 'system';
 
         const applyTheme = (theme) => {
             document.documentElement.setAttribute('data-theme', theme);
-            updateThemeIcon(theme);
-            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-            if (metaThemeColor) {
-                metaThemeColor.content = theme === 'dark' ? '#1a1a1a' : '#f0f2f5';
-            }
-            // update aria-pressed for toggle
-            if (typeof themeToggle !== 'undefined' && themeToggle) {
-                themeToggle.setAttribute('aria-pressed', theme === 'dark');
-            }
+            updateMetaTheme(theme);
         };
 
         const prefersDarkMatcher = window.matchMedia('(prefers-color-scheme: dark)');
@@ -232,40 +225,34 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             applyTheme(savedTheme);
         }
+
+        // Set the dropdown value
+        themeSelect.value = savedTheme;
     }
 
-    function toggleTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        // Cycle: system -> light -> dark -> system
-        let nextSetting;
-        if (!savedTheme || savedTheme === 'system') nextSetting = 'light';
-        else if (savedTheme === 'light') nextSetting = 'dark';
-        else nextSetting = 'system';
+    function changeTheme() {
+        const selectedTheme = themeSelect.value;
+        localStorage.setItem('theme', selectedTheme);
 
-        localStorage.setItem('theme', nextSetting);
-
-        if (nextSetting === 'system') {
+        if (selectedTheme === 'system') {
             const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const theme = systemDark ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', theme);
-            updateThemeIcon(theme);
-            themeToggle.setAttribute('aria-pressed', theme === 'dark');
-            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-            if (metaThemeColor) metaThemeColor.content = theme === 'dark' ? '#1a1a1a' : '#f0f2f5';
+            updateMetaTheme(theme);
         } else {
-            document.documentElement.setAttribute('data-theme', nextSetting);
-            updateThemeIcon(nextSetting);
-            themeToggle.setAttribute('aria-pressed', nextSetting === 'dark');
-            const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-            if (metaThemeColor) metaThemeColor.content = nextSetting === 'dark' ? '#1a1a1a' : '#f0f2f5';
+            document.documentElement.setAttribute('data-theme', selectedTheme);
+            updateMetaTheme(selectedTheme);
         }
     }
 
-    function updateThemeIcon(theme) {
-        if (theme === 'dark') {
-            themeIcon.textContent = '☀️';
-        } else {
-            themeIcon.textContent = '🌙';
+    function updateMetaTheme(theme) {
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+            let color = '#f0f2f5'; // default light
+            if (theme === 'dark') color = '#1a1a1a';
+            else if (theme === 'focus') color = '#000000';
+            else if (theme === 'chill') color = '#1a1625';
+            metaThemeColor.content = color;
         }
     }
 
@@ -488,8 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Another hint button event listener
     anotherHintBtn.addEventListener('click', handleAnotherHint);
 
-    // Theme toggle event listener
-    themeToggle.addEventListener('click', toggleTheme);
+    // Theme select event listener
+    themeSelect.addEventListener('change', changeTheme);
 
     // Timer event listeners
     startTimerBtn.addEventListener('click', startTimer);
@@ -514,8 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.value = e.target.value.replace(/[^0-9:]/g, '');
     });
 
-    // Particles toggle event listener
-    particlesToggle.addEventListener('click', toggleParticles);
+    // Particles dropdown event listener
+    particlesToggle.addEventListener('change', toggleParticles);
 
     // Window resize handler for particles
     window.addEventListener('resize', () => {
@@ -536,13 +523,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Setup ---
     initTheme(); // Initialize theme on page load
     updateTimerDisplay(); // Initialize timer display
-    initParticles(); // Initialize particles
-    initParticlesState(); // Initialize particles state
+    initParticlesState(); // Initialize particles state (this will call initParticles if needed)
     setInputState(false); // Ensure input/button are enabled and focused on load
 
     // Initialize ARIA states
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    themeToggle.setAttribute('aria-pressed', currentTheme === 'dark');
     particlesToggle.setAttribute('aria-pressed', particlesActive);
     promptBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -560,10 +544,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // If there is no saved state, default to true. Otherwise, use the saved state.
         const shouldBeActive = savedState === null ? true : savedState === 'true';
 
+        // Set dropdown value
+        particlesToggle.value = shouldBeActive ? 'on' : 'off';
+        particlesActive = shouldBeActive;
+
         if (shouldBeActive) {
-            particlesActive = true;
             particlesCanvas.classList.add('active');
-            particlesToggle.classList.add('active');
+            // Initialize particles if needed
+            if (particles.length === 0) {
+                initParticles();
+            }
             // Start the animation if it's not already running
             if (!animationId) {
                 animateParticles();
@@ -571,13 +561,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             particlesActive = false;
             particlesCanvas.classList.remove('active');
-            particlesToggle.classList.remove('active');
         }
     }
 
     function initParticles() {
         particlesCanvas.width = window.innerWidth;
         particlesCanvas.height = window.innerHeight;
+
+        // Initialize context
+        ctx = particlesCanvas.getContext('2d');
 
         // Create particles
         particles = [];
@@ -589,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function animateParticles() {
-        if (!particlesActive) return;
+        if (!particlesActive || !ctx) return;
 
         ctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
 
@@ -602,15 +594,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleParticles() {
-        particlesActive = !particlesActive;
+        const selectedValue = particlesToggle.value;
+        particlesActive = selectedValue === 'on';
 
         if (particlesActive) {
+            // Initialize particles if not already done
+            if (particles.length === 0) {
+                initParticles();
+            }
             particlesCanvas.classList.add('active');
-            particlesToggle.classList.add('active');
-            animateParticles();
+            // Start animation
+            if (!animationId) {
+                animateParticles();
+            }
         } else {
             particlesCanvas.classList.remove('active');
-            particlesToggle.classList.remove('active');
             if (animationId) {
                 cancelAnimationFrame(animationId);
                 animationId = null;

@@ -1,85 +1,336 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f0f2f5">
-    <meta name="color-scheme" content="light dark">
-    <title>LeetCode Helper</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <!-- Skip to content link for screen readers -->
-    <a href="#main-content" class="skip-link">Skip to main content</a>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Leet Helper</title>
 
-    <div class="container">
-        <div class="header">
-            <div class="header-left">
-                <h1>Leet Helper</h1>
-                <div class="timer-container">
-                    <label for="timer" class="visually-hidden">Timer</label>
-                    <input type="text" id="timer" class="timer" value="25:00" aria-label="Timer" inputmode="numeric" pattern="\d{1,2}:\d{2}">
-                    <div class="timer-controls">
-                        <button id="startTimer" class="timer-btn" aria-label="Start timer">Start</button>
-                        <button id="resetTimer" class="timer-btn" aria-label="Reset timer">Reset</button>
-                    </div>
-                </div>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Existing app styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+    <style>
+      :root {
+        --bg: #0b0c0f;
+        --card: #111317;
+        --muted: #8b93a1;
+        --fg: #e6e9ef;
+        --brand: #6ea8fe;
+        --ring: #2a65ff33;
+      }
+      [data-theme="light"] :root,
+      :root[data-theme="light"] {
+        --bg: #f6f7fb;
+        --card: #ffffff;
+        --muted: #5b6473;
+        --fg: #0a0c10;
+        --brand: #2b6bf3;
+        --ring: #2b6bf326;
+      }
+      [data-theme="dark"] :root,
+      :root[data-theme="dark"] {
+        --bg: #0b0c0f;
+        --card: #111317;
+        --muted: #8b93a1;
+        --fg: #e6e9ef;
+        --brand: #6ea8fe;
+        --ring: #2a65ff33;
+      }
+      [data-theme="focus"] :root,
+      :root[data-theme="focus"] {
+        --bg: #000000;
+        --card: #1a1a1a;
+        --muted: #666666;
+        --fg: #ffffff;
+        --brand: #00ff88;
+        --ring: #00ff8833;
+      }
+      [data-theme="chill"] :root,
+      :root[data-theme="chill"] {
+        --bg: #1a1625;
+        --card: #2d283e;
+        --muted: #9ca3af;
+        --fg: #f3f4f6;
+        --brand: #a78bfa;
+        --ring: #a78bfa33;
+      }
+
+      /* Page frame */
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--fg);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      .wrap {
+        min-height: 100dvh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      /* Header */
+      header {
+        position: sticky; top: 0; z-index: 40;
+        backdrop-filter: saturate(1.2) blur(6px);
+        background: color-mix(in oklab, var(--bg) 82%, transparent);
+        border-bottom: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+      }
+      .bar {
+        max-width: 1100px; margin: 0 auto; padding: 12px 16px;
+        display: flex; align-items: center; gap: 12px; justify-content: space-between;
+      }
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .dot { width: 10px; height: 10px; border-radius: 999px; background: var(--brand); box-shadow: 0 0 0 6px var(--ring); }
+      h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.2px; margin: 0; }
+      .actions { display: flex; gap: 8px; align-items: center; }
+      .icon-btn {
+        display: grid; place-items: center; width: 36px; height: 36px;
+        border-radius: 10px; background: color-mix(in oklab, var(--card) 90%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+        cursor: pointer; color: var(--fg);
+      }
+      .icon-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+      /* Theme selector */
+      .theme-selector {
+        position: relative;
+      }
+      .theme-dropdown {
+        appearance: none;
+        background: color-mix(in oklab, var(--card) 90%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+        border-radius: 10px;
+        color: var(--fg);
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        min-width: 100px;
+        transition: all 0.2s ease;
+      }
+      .theme-dropdown:hover {
+        background: color-mix(in oklab, var(--card) 95%, transparent);
+        border-color: color-mix(in oklab, var(--fg) 20%, transparent);
+      }
+      .theme-dropdown:focus {
+        outline: none;
+        border-color: var(--brand);
+        box-shadow: 0 0 0 2px var(--ring);
+      }
+      .theme-dropdown option {
+        background: var(--card);
+        color: var(--fg);
+        padding: 8px;
+      }
+
+      /* Particles selector */
+      .particles-selector {
+        position: relative;
+      }
+      .particles-dropdown {
+        appearance: none;
+        background: color-mix(in oklab, var(--card) 90%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+        border-radius: 10px;
+        color: var(--fg);
+        padding: 8px 12px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        min-width: 80px;
+        transition: all 0.2s ease;
+      }
+      .particles-dropdown:hover {
+        background: color-mix(in oklab, var(--card) 95%, transparent);
+        border-color: color-mix(in oklab, var(--fg) 20%, transparent);
+      }
+      .particles-dropdown:focus {
+        outline: none;
+        border-color: var(--brand);
+        box-shadow: 0 0 0 2px var(--ring);
+      }
+      .particles-dropdown option {
+        background: var(--card);
+        color: var(--fg);
+        padding: 8px;
+      }
+
+      /* Main layout */
+      .main { max-width: 1100px; margin: 18px auto 28px; padding: 0 16px; display: grid; gap: 16px; grid-template-columns: 1.6fr 1fr; }
+      @media (max-width: 980px) { .main { grid-template-columns: 1fr; } }
+
+      .card {
+        background: var(--card);
+        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px -15px rgba(0,0,0,0.35);
+      }
+      .card-head { padding: 14px 14px 0 14px; display: flex; justify-content: space-between; align-items: center; }
+      .card-title { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+      .card-body { padding: 14px; }
+
+      /* Chat panel */
+      .chat-box {
+        height: clamp(280px, 38dvh, 520px);
+        overflow: auto;
+        padding: 12px;
+        border-radius: 12px;
+        background: color-mix(in oklab, var(--card) 92%, transparent);
+        border: 1px dashed color-mix(in oklab, var(--fg) 12%, transparent);
+      }
+
+      /* Input row */
+      .input-row { display: grid; gap: 10px; grid-template-columns: 1fr auto; align-items: center; }
+      .field, textarea {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid color-mix(in oklab, var(--fg) 20%, transparent);
+        background: color-mix(in oklab, var(--card) 95%, transparent);
+        color: var(--fg);
+        padding: 12px 14px;
+        font-size: 14px;
+        box-sizing: border-box;
+        vertical-align: top;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+      }
+      .field:focus, textarea:focus {
+        outline: none;
+        border-color: var(--brand);
+        background: color-mix(in oklab, var(--card) 98%, transparent);
+        box-shadow: 0 0 0 3px var(--ring);
+      }
+      .field::placeholder, textarea::placeholder {
+        color: color-mix(in oklab, var(--muted) 80%, transparent);
+        opacity: 1;
+      }
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+        line-height: 1.5;
+        font-family: inherit;
+      }
+      .btn {
+        appearance: none; border: none; cursor: pointer; font-weight: 600;
+        padding: 10px 14px; border-radius: 12px; font-size: 14px; color: #fff; background: var(--brand);
+        box-shadow: 0 6px 14px -6px var(--ring);
+      }
+      .btn.secondary { color: var(--fg); background: transparent; border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent); }
+      .btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+      /* Utilities */
+      .muted { color: var(--muted); font-size: 13px; }
+      .stack { display: grid; gap: 12px; }
+      .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+      /* Timer chip */
+      .timer-chip { display: inline-flex; gap: 8px; align-items: center; border-radius: 999px; padding: 8px 10px; border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent); }
+      .timer { width: 70px; text-align: center; border: none; background: transparent; color: var(--fg); font-feature-settings: "tnum" on, "lnum" on; font-variant-numeric: tabular-nums; font-weight: 700; }
+      .timer-btn { border: none; background: transparent; color: var(--fg); cursor: pointer; padding: 6px 8px; border-radius: 8px; }
+      .timer-btn:hover { background: color-mix(in oklab, var(--fg) 8%, transparent); }
+
+      footer { max-width: 1100px; margin: 0 auto 28px; padding: 0 16px; color: var(--muted); font-size: 13px; }
+
+      /* Visually hidden (for a11y) */
+      .visually-hidden { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+
+      /* Optional decorative canvas */
+      #particlesCanvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .25; }
+    </style>
+  </head>
+  <body>
+    <a class="visually-hidden" href="#main">Skip to content</a>
+
+    <div class="wrap">
+      <!-- Header -->
+      <header>
+        <div class="bar">
+          <div class="brand">
+            <span aria-hidden="true" class="dot"></span>
+            <h1>Leet Helper</h1>
+          </div>
+          <div class="actions">
+            <div class="particles-selector">
+              <select id="particlesToggle" class="particles-dropdown" aria-label="Toggle background particles">
+                <option value="off">✨ Off</option>
+                <option value="on">✨ On</option>
+              </select>
             </div>
-            <div class="header-right">
-                <button id="particlesToggle" class="particles-toggle" aria-label="Toggle particles effect" aria-pressed="false">
-                    <span class="particles-icon" aria-hidden="true">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2l1.8 3.9L18 7l-3.2 3 0.8 4-3.6-2-3.6 2 0.8-4L6 7l4.2-1.1L12 2z"/>
-                            <circle cx="5" cy="5" r="1"/>
-                            <circle cx="19" cy="9" r="1"/>
-                            <circle cx="8" cy="19" r="1"/>
-                        </svg>
-                    </span>
-                </button>
-                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme (system)" aria-pressed="false" title="Toggle theme">
-                    <span class="theme-icon" aria-hidden="true">
-                        <svg id="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="4"/>
-                            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                        </svg>
-                        <svg id="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                        </svg>
-                    </span>
-                </button>
+            <div class="theme-selector">
+              <select id="themeSelect" class="theme-dropdown" aria-label="Select theme">
+                <option value="system">🌓 System</option>
+                <option value="light">☀️ Light</option>
+                <option value="dark">🌙 Dark</option>
+                <option value="focus">⚡ Focus</option>
+                <option value="chill">🌸 Chill</option>
+              </select>
             </div>
+          </div>
         </div>
-        <canvas id="particlesCanvas" class="particles-canvas"></canvas>
-        <main id="main-content" class="main-content" role="main">
-            <div class="chat-section">
-                <div class="chat-box" role="log" aria-live="polite" aria-relevant="additions" aria-label="Chat messages">
-                </div>
-                <form class="input-area" id="inputArea" role="form" aria-label="Problem input form">
-                    <label for="problemInput" class="visually-hidden">Problem description</label>
-                    <input type="text" id="problemInput" placeholder="What problem are you working on?" aria-describedby="problem-help">
-                    <button type="submit" id="getHintBtn" aria-label="Get hint for current problem">Get Hint</button>
-                    <div id="problem-help" class="visually-hidden">Enter the LeetCode problem name or number you're working on</div>
-                </form>
-                <div class="new-problem-area" id="newProblemArea" style="display: none;" role="group" aria-label="Problem actions">
-                    <button id="newProblemBtn" aria-label="Start a new problem">New Problem</button>
-                    <button id="anotherHintBtn" aria-label="Get another hint for current problem">Another Hint</button>
-                </div>
+      </header>
+
+      <canvas id="particlesCanvas" class="particles-canvas"></canvas>
+
+      <!-- Main -->
+      <main id="main" class="main" role="main">
+        <!-- Left: chat/workflow -->
+        <section class="card" aria-labelledby="chat-title">
+          <div class="card-head">
+            <div class="row">
+              <p id="chat-title" class="card-title">Session</p>
+              <span class="muted">Ask for hints. Iterate fast.</span>
             </div>
-            <aside class="context-section" role="complementary" aria-label="Additional context">
-                <h3>Additional Context</h3>
-                <label for="contextInput" class="visually-hidden">Additional context for better hints</label>
-                <textarea id="contextInput" placeholder="Tell me about your approach, code, or what you're stuck on..." aria-describedby="context-help"></textarea>
-                <div class="context-info" id="context-help">
-                    <p>The more context you provide, the better hints I can give!</p>
-                </div>
-            </aside>
-        </main>
+          </div>
+          <div class="card-body stack">
+            <div class="chat-box" id="chatLog" role="log" aria-live="polite" aria-relevant="additions" aria-label="Chat messages"></div>
+
+            <form id="inputArea" class="stack" role="form" aria-label="Problem input form">
+              <label class="visually-hidden" for="problemInput">Problem description</label>
+              <div class="input-row">
+                <input id="problemInput" class="field" placeholder="LeetCode problem name or #" aria-describedby="problem-help" inputmode="text" />
+                <button id="getHintBtn" type="submit" class="btn">Get hint</button>
+              </div>
+              <small id="problem-help" class="muted">Tip: paste code snippets or your approach below for sharper hints.</small>
+            </form>
+
+            <div id="newProblemArea" class="row" role="group" aria-label="Problem actions" style="display: none;">
+              <button id="newProblemBtn" class="btn secondary">New problem</button>
+              <button id="anotherHintBtn" class="btn secondary">Another hint</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: context + timer -->
+        <aside class="card" aria-labelledby="context-title">
+          <div class="card-head">
+            <p id="context-title" class="card-title">Context</p>
+            <div class="timer-chip" aria-label="Timer controls">
+              <label for="timer" class="visually-hidden">Timer</label>
+              <input id="timer" class="timer" value="25:00" aria-label="Timer" inputmode="numeric" pattern="\d{1,2}:\d{2}" />
+              <button id="startTimer" class="timer-btn" aria-label="Start timer">Start</button>
+              <button id="resetTimer" class="timer-btn" aria-label="Reset timer">Reset</button>
+            </div>
+          </div>
+          <div class="card-body stack">
+            <label for="contextInput" class="visually-hidden">Additional context</label>
+            <textarea id="contextInput" placeholder="Share your approach, language, constraints, or what’s blocking you..."></textarea>
+            <p class="muted">The more signal you provide, the better the hints.</p>
+          </div>
+        </aside>
+      </main>
+
+      <footer>
+        <p class="muted">Built for focused practice. Toggle theme or particles if you need less/more vibe.</p>
+      </footer>
     </div>
 
-
+    <!-- Existing app script -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
+  </body>
 </html>
