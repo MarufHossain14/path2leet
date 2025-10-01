@@ -216,6 +216,30 @@
         line-height: 1.5;
         font-family: inherit;
       }
+
+      /* Conversation textarea styling */
+      .conversation-textarea {
+        min-height: 80px;
+        resize: vertical;
+        line-height: 1.4;
+        font-family: inherit;
+      }
+
+      /* Conversation actions (vertical button stack) */
+      .conversation-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 120px;
+      }
+
+      /* Adjust input-row for conversation area */
+      .conversation-textarea-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr auto;
+        align-items: start;
+      }
       .btn {
         appearance: none; border: none; cursor: pointer; font-weight: 600;
         padding: 10px 14px; border-radius: 12px; font-size: 14px; color: #fff; background: var(--brand);
@@ -340,6 +364,7 @@
           <div class="card-body stack">
             <div class="chat-box" id="chatLog" role="log" aria-live="polite" aria-relevant="additions" aria-label="Chat messages"></div>
 
+            <!-- Initial problem input form -->
             <form id="inputArea" class="stack" role="form" aria-label="Problem input form">
               <label class="visually-hidden" for="problemInput">Problem description</label>
               <div class="input-row">
@@ -347,6 +372,18 @@
                 <button id="getHintBtn" type="submit" class="btn">Get hint</button>
               </div>
               <small id="problem-help" class="muted">Tip: paste code snippets or your approach below for sharper hints.</small>
+            </form>
+
+            <!-- Conversation input area (shown after first hint) -->
+            <form id="conversationArea" class="stack" role="form" aria-label="Conversation input form" style="display: none;">
+              <div class="input-row">
+                <textarea id="conversationInput" class="field conversation-textarea" placeholder="Ask a follow-up question, share your approach, or explain what you're stuck on..." rows="3" aria-describedby="conversation-help"></textarea>
+                <div class="conversation-actions">
+                  <button id="sendMessageBtn" type="submit" class="btn">Send</button>
+                  <button id="newProblemFromConvo" type="button" class="btn secondary">New problem</button>
+                </div>
+              </div>
+              <small id="conversation-help" class="muted">💬 Continue the conversation or ask follow-up questions about the current problem</small>
             </form>
 
             <div id="newProblemArea" class="row" role="group" aria-label="Problem actions" style="display: none;">

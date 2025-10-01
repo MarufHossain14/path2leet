@@ -128,6 +128,90 @@ def landing():
 def index():
     return render_template('index.html')
 
+@app.route('/conversation', methods=['POST'])
+def conversation():
+    """Handle ongoing conversation messages"""
+    data = request.json
+
+    if not data or 'message' not in data:
+        return jsonify({'error': 'Message not provided'}), 400
+
+    # Sanitize and validate all inputs
+    raw_message = data['message']
+    raw_problem_name = data.get('problemName', '')
+    raw_conversation_history = data.get('conversationHistory', [])
+
+    # Validate and sanitize inputs
+    if not raw_problem_name:
+        return jsonify({'error': 'Problem name not provided'}), 400
+
+    is_valid, problem_result = validate_problem_name(raw_problem_name)
+    if not is_valid:
+        return jsonify({'error': problem_result}), 400
+
+    # Sanitize inputs
+    message = sanitize_input(raw_message)
+    problem_name = sanitize_input(raw_problem_name)
+    conversation_history = sanitize_conversation_history(raw_conversation_history)
+
+    print(f"Conversation message for problem: {problem_name[:50]}...")
+    print(f"User message: {message[:100]}...")
+    if conversation_history:
+        print(f"With {len(conversation_history)} previous interactions")
+
+    # Build conversation context
+    conversation_context = "Previous conversation:\n"
+    for i, interaction in enumerate(conversation_history, 1):
+        user_part = interaction.get('userInput', '')
+        bot_part = interaction.get('botResponse', '')
+        conversation_context += f"Exchange {i}:\n"
+        conversation_context += f"User: {user_part}\n"
+        conversation_context += f"Coach: {bot_part}\n\n"
+
+    # System prompt for ongoing conversation
+    system_prompt = """You are a friendly and encouraging LeetCode Coach bot engaged in an ongoing conversation with a student about a specific problem.
+
+The student is asking a follow-up question or sharing additional information about their approach. Continue the coaching conversation naturally.
+
+Guidelines:
+1. **Be Conversational**: Respond naturally as if you're having a real conversation with a student who is learning.
+2. **Stay Encouraging**: Maintain a supportive and encouraging tone throughout the conversation.
+3. **Build on Previous Context**: Reference previous parts of the conversation when relevant.
+4. **Ask Clarifying Questions**: Feel free to ask questions to better understand their approach or thinking.
+5. **Guide, Don't Solve**: Provide guidance and hints rather than direct solutions.
+6. **Be Adaptive**: Adjust your response based on whether they seem to be making progress or are still stuck.
+
+Current Problem: [PROBLEM_NAME]
+[CONVERSATION_CONTEXT]
+Student's Latest Message: [USER_MESSAGE]
+
+Respond as the Coach in this ongoing conversation:"""
+
+    # Replace placeholders with sanitized values
+    prompt_text = system_prompt.replace("[PROBLEM_NAME]", problem_name)
+    prompt_text = prompt_text.replace("[CONVERSATION_CONTEXT]", conversation_context)
+    prompt_text = prompt_text.replace("[USER_MESSAGE]", message)
+
+    # Interact with Gemini API
+    try:
+        response_gemini = model.generate_content(prompt_text)
+        ai_full_response = response_gemini.text
+        print(f"Gemini conversation response:\n{ai_full_response}")
+
+        # For conversation responses, we just return the response as-is
+        response_text = ai_full_response.strip()
+
+    except Exception as e:
+        print(f"Error calling Gemini API for conversation: {e}")
+        response_text = "I'm sorry, I encountered an error. Could you please try asking your question again?"
+
+    # Prepare the response
+    response_for_frontend = {
+        'response': response_text
+    }
+
+    return jsonify(response_for_frontend)
+
 @app.route('/get_hint', methods=['POST'])
 def get_hint():
     data = request.json
@@ -163,16 +247,23 @@ def get_hint():
 
     if request_type == 'first_hint':
         # Base system prompt without user input
-        system_prompt = """You are a friendly and encouraging LeetCode Coach bot. Your primary goal is to help users who are stuck on a problem without discouraging them.
-Your output should ONLY contain the hint, or the "not familiar" message.
+        system_prompt = """You are a friendly and encouraging LeetCode Coach bot. Your goal is to help users learn problem-solving patterns through guided conversation, just like a patient tutor would.
+
+Your response style should be:
+- **Conversational and encouraging**: Talk like a supportive coach, not a formal assistant
+- **Questioning**: Often ask clarifying questions to understand their thinking
+- **Gradual guidance**: Give hints that guide their thinking rather than solutions
 
 Here are your instructions for *each problem query*:
-1.  **Evaluate Their Approach (if context provided):** If the user provides context about their current approach, first briefly evaluate whether their thinking is on the right track. Be encouraging but honest.
-2.  **Provide a Hint:** Give a single, conceptual hint for the specified problem. This hint should guide their thinking process.
-    - DO NOT give away the direct algorithm or data structure (e.g., instead of saying "use a hash map," say "think of a way to quickly look up values").
-    - DO NOT write any code.
-    - Keep the hint to one or two sentences.
-    - If the user provides additional context about their approach or what they've tried, tailor your hint to address their specific situation.
+1. **Acknowledge their situation**: Show understanding if they mention being stuck
+2. **Evaluate their approach (if provided)**: If they share context about their current approach, briefly evaluate whether they're on the right track. Be encouraging but honest.
+3. **Provide a guiding hint**: Give a single, conceptual hint that guides their thinking process.
+   - Ask probing questions like "What data structure helps you remember things?" instead of "Use a hash map"
+   - Guide them to discover patterns: "What happens when you see the same number twice?"
+   - Encourage experimentation: "What would happen if you tried...?"
+4. **End with an engaging question**: Ask them something to continue the conversation and check their understanding
+
+Keep your response conversational and under 3-4 sentences. Think of it as the opening of a tutoring session.
 
 If you do not recognize the problem name or number provided by the user, respond with: "I'm not familiar with that problem. Could you please check the spelling or problem number and try again?"
 
@@ -185,17 +276,22 @@ USER CONTEXT: [USER_CONTEXT]"""
 
     else:  # another_hint
         # Base system prompt for additional hints
-        system_prompt = """You are a friendly and encouraging LeetCode Coach bot. The user has already received some hints for this problem and is asking for a DIFFERENT approach or perspective.
+        system_prompt = """You are a friendly and encouraging LeetCode Coach bot. The user has already received some guidance for this problem and is asking for a different perspective or approach.
 
-IMPORTANT: You must provide a hint that is DIFFERENT from any previous hints given. Do not repeat the same approach or concept.
+Continue the coaching conversation naturally:
+- **Acknowledge their progress**: "Interesting! Let me give you a different angle..."
+- **Provide a genuinely different approach**: Make sure your hint explores a completely different solution path
+- **Keep it conversational**: Ask questions and encourage their thinking
+- **Guide, don't solve**: Help them discover the solution rather than giving it away
 
-Here are your instructions:
-1.  **Evaluate Their Progress (if context provided):** If the user provides context about their current approach, briefly assess their progress and whether they're moving in the right direction.
-2.  **Provide a Different Hint:** Give a single, conceptual hint that approaches the problem from a different angle than previous hints.
-    - DO NOT give away the direct algorithm or data structure (e.g., instead of saying "use a hash map," say "think of a way to quickly look up values").
-    - DO NOT write any code.
-    - Keep the hint to one or two sentences.
-    - Make sure this hint is genuinely different from previous approaches.
+Your response should:
+1. **Reference their journey**: Acknowledge they're working through this
+2. **Offer a different perspective**: Provide a hint that approaches the problem from a completely different angle than previous hints
+3. **Ask an engaging question**: End with something that checks their understanding or guides their next thinking step
+
+IMPORTANT: Provide a hint that is DIFFERENT from any previous hints given. Do not repeat the same approach or concept.
+
+Keep your response conversational and under 3-4 sentences.
 
 PROBLEM TO ANALYZE: [PROBLEM_NAME]
 USER CONTEXT: [USER_CONTEXT]

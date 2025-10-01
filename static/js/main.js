@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatBox = document.querySelector('.chat-box');
     const contextInput = document.getElementById('contextInput');
     const inputArea = document.getElementById('inputArea');
+    const conversationArea = document.getElementById('conversationArea');
+    const conversationInput = document.getElementById('conversationInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const newProblemFromConvo = document.getElementById('newProblemFromConvo');
     const newProblemArea = document.getElementById('newProblemArea');
     const newProblemBtn = document.getElementById('newProblemBtn');
     const anotherHintBtn = document.getElementById('anotherHintBtn');
@@ -22,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentProblem = '';
     let currentContext = '';
     let conversationHistory = []; // Store all previous hints and responses
+    let conversationMode = false; // Track if we're in conversation mode
 
     // --- Timer Management ---
     let timerInterval = null;
@@ -285,23 +290,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Helper to switch between input and new problem modes
+    // Helper to enable/disable conversation input
+    function setConversationState(disabled) {
+        conversationInput.disabled = disabled;
+        sendMessageBtn.disabled = disabled;
+        if (!disabled) {
+            conversationInput.focus();
+        }
+    }
+
+    // Helper to switch between different UI modes
     function showNewProblemMode() {
         inputArea.style.display = 'none';
+        conversationArea.style.display = 'none';
         newProblemArea.style.display = 'flex';
+        conversationMode = false;
+    }
+
+    function showConversationMode() {
+        inputArea.style.display = 'none';
+        newProblemArea.style.display = 'none';
+        conversationArea.style.display = 'flex';
+        conversationMode = true;
+        conversationInput.focus();
     }
 
     function showInputMode() {
         inputArea.style.display = 'flex';
+        conversationArea.style.display = 'none';
         newProblemArea.style.display = 'none';
         problemInput.value = ''; // Clear the input
         contextInput.value = ''; // Clear the context
+        conversationInput.value = ''; // Clear conversation input
         problemInput.focus(); // Focus on the input
 
         // Reset conversation state
         currentProblem = '';
         currentContext = '';
         conversationHistory = [];
+        conversationMode = false;
     }
 
     /**
@@ -368,6 +395,78 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Function to handle ongoing conversation messages
+     */
+    async function handleConversationMessage() {
+        const userMessage = conversationInput.value.trim();
+
+        if (!userMessage) {
+            return; // Don't send empty messages
+        }
+
+        if (!currentProblem) {
+            displayMessage("Error: No current problem to discuss. Please start a new problem first.", 'bot');
+            return;
+        }
+
+        // Display the user's message
+        displayMessage(userMessage, 'user');
+
+        // Clear the input
+        conversationInput.value = '';
+
+        // Disable controls and display loading message
+        setConversationState(true);
+        const loadingMessage = displayMessage('Thinking...', 'bot');
+        loadingMessage.classList.add('loading');
+
+        try {
+            // Prepare request for conversation
+            const requestBody = {
+                message: userMessage,
+                problemName: currentProblem,
+                conversationHistory: conversationHistory
+            };
+
+            const response = await fetch('/conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                displayMessage(`Error: ${errorData.error || 'Something went wrong.'}`, 'bot');
+                return;
+            }
+
+            const data = await response.json();
+
+            // Remove loading message
+            loadingMessage.remove();
+
+            // Display the bot's response
+            const botResponse = data.response;
+            displayMessage(botResponse, 'bot');
+
+            // Store this interaction in conversation history
+            conversationHistory.push({
+                userInput: userMessage,
+                botResponse: botResponse
+            });
+
+        } catch (error) {
+            loadingMessage.remove();
+            console.error('Error sending conversation message:', error);
+            displayMessage("Oops! I couldn't reach the server. Please ensure the backend is running.", 'bot');
+        } finally {
+            setConversationState(false); // Re-enable conversation input
+        }
+    }
+
+    /**
      * This function contains the main logic that runs when the user asks for a hint.
      * It is now an 'async' function because it will use 'await' for the fetch API call.
      */
@@ -429,8 +528,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showInputMode(); // Keep input visible
                 // Don't store in conversation history or set current problem
             } else {
-                // Problem recognized - switch to new problem mode and save context
-                showNewProblemMode();
+                // Problem recognized - switch to conversation mode and save context
+                showConversationMode();
                 currentProblem = userInput;
                 currentContext = context;
 
@@ -474,6 +573,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Another hint button event listener
     anotherHintBtn.addEventListener('click', handleAnotherHint);
+
+    // Conversation form event listeners
+    conversationArea.addEventListener('submit', (event) => {
+        event.preventDefault();
+        handleConversationMessage();
+    });
+
+    sendMessageBtn.addEventListener('click', handleConversationMessage);
+
+    conversationInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault(); // Prevents default behavior (new line)
+            handleConversationMessage();
+        }
+        // Allow Shift+Enter for new lines
+    });
+
+    // New problem from conversation button
+    newProblemFromConvo.addEventListener('click', showInputMode);
 
     // Theme select event listener
     themeSelect.addEventListener('change', changeTheme);
