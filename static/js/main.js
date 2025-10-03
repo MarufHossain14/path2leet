@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const particlesToggle = document.getElementById('particlesToggle');
     const particlesCanvas = document.getElementById('particlesCanvas');
     const promptBtns = document.querySelectorAll('.prompt-btn');
+    const fullscreenChatModal = document.getElementById('fullscreenChatModal');
+    const fullscreenChatLog = document.getElementById('fullscreenChatLog');
+    const toggleFullscreenChat = document.getElementById('toggleFullscreenChat');
+    const closeFullscreenChat = document.getElementById('closeFullscreenChat');
 
     // --- State Management ---
     let currentProblem = '';
@@ -292,8 +296,61 @@ document.addEventListener('DOMContentLoaded', () => {
         chatBox.appendChild(messageDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
+        // Also add to fullscreen chat if it's open
+        if (fullscreenChatModal && fullscreenChatModal.style.display !== 'none') {
+            const fullscreenMessageDiv = messageDiv.cloneNode(true);
+            fullscreenChatLog.appendChild(fullscreenMessageDiv);
+            fullscreenChatLog.scrollTop = fullscreenChatLog.scrollHeight;
+        }
+
+
         return messageDiv;
     }
+
+    /**
+     * Open fullscreen chat modal
+     */
+    function openFullscreenChat() {
+        if (!fullscreenChatModal || !fullscreenChatLog) return;
+
+        // Copy all existing messages to fullscreen chat
+        fullscreenChatLog.innerHTML = '';
+        const messages = chatBox.querySelectorAll('.chat-message');
+        messages.forEach(message => {
+            const clonedMessage = message.cloneNode(true);
+            fullscreenChatLog.appendChild(clonedMessage);
+        });
+
+        // Show modal
+        fullscreenChatModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Scroll to bottom
+        fullscreenChatLog.scrollTop = fullscreenChatLog.scrollHeight;
+
+        // Add a subtle entrance animation
+        const modalContent = fullscreenChatModal.querySelector('.fullscreen-modal-content');
+        if (modalContent) {
+            modalContent.style.transform = 'scale(0.9) translateY(20px)';
+            modalContent.style.opacity = '0';
+            setTimeout(() => {
+                modalContent.style.transition = 'all 0.3s ease';
+                modalContent.style.transform = 'scale(1) translateY(0)';
+                modalContent.style.opacity = '1';
+            }, 10);
+        }
+    }
+
+    /**
+     * Close fullscreen chat modal
+     */
+    function closeFullscreenChatModal() {
+        if (!fullscreenChatModal) return;
+
+        fullscreenChatModal.style.display = 'none';
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
 
     /**
      * HTML escape function to prevent XSS attacks
@@ -716,6 +773,28 @@ document.addEventListener('DOMContentLoaded', () => {
             handleQuickAction(action);
         });
     });
+
+    // Fullscreen chat event listeners
+    if (toggleFullscreenChat) {
+        toggleFullscreenChat.addEventListener('click', openFullscreenChat);
+    }
+    if (closeFullscreenChat) {
+        closeFullscreenChat.addEventListener('click', closeFullscreenChatModal);
+    }
+    if (fullscreenChatModal) {
+        // Close modal when clicking outside
+        fullscreenChatModal.addEventListener('click', function(e) {
+            if (e.target === fullscreenChatModal) {
+                closeFullscreenChatModal();
+            }
+        });
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && fullscreenChatModal.style.display !== 'none') {
+                closeFullscreenChatModal();
+            }
+        });
+    }
 
     // Theme select event listener
     themeSelect.addEventListener('change', changeTheme);
