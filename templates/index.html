@@ -276,14 +276,18 @@
         font-size: 15px;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--fg);
+        font-weight: 400;
       }
 
       .chat-message.user {
-        background: linear-gradient(135deg, color-mix(in oklab, var(--brand) 20%, transparent) 0%, color-mix(in oklab, var(--brand) 10%, transparent) 100%);
-        border: 1px solid color-mix(in oklab, var(--brand) 30%, transparent);
+        background: var(--brand);
+        border: 1px solid var(--brand);
         margin-left: auto;
         margin-right: 0;
-        box-shadow: 0 4px 20px rgba(110, 168, 254, 0.15);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        color: white;
+        font-weight: 500;
         position: relative;
       }
 
@@ -301,11 +305,12 @@
       }
 
       .chat-message.bot {
-        background: linear-gradient(135deg, color-mix(in oklab, var(--card) 100%, transparent) 0%, color-mix(in oklab, var(--card) 95%, transparent) 100%);
-        border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+        background: var(--card);
+        border: 1px solid color-mix(in oklab, var(--fg) 20%, transparent);
         margin-left: 0;
         margin-right: auto;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        color: var(--fg);
         position: relative;
       }
 
@@ -344,26 +349,27 @@
 
       /* Code and technical content styling */
       .chat-message code {
-        background: color-mix(in oklab, var(--fg) 8%, transparent);
+        background: color-mix(in oklab, var(--fg) 12%, transparent);
         color: var(--brand);
-        padding: 2px 6px;
+        padding: 3px 6px;
         border-radius: 4px;
         font-family: 'Fira Code', 'Monaco', 'Consolas', 'Courier New', monospace;
         font-size: 0.9em;
-        font-weight: 500;
-        border: 1px solid color-mix(in oklab, var(--brand) 20%, transparent);
+        font-weight: 600;
+        border: 1px solid color-mix(in oklab, var(--fg) 20%, transparent);
       }
 
       .chat-message pre {
-        background: color-mix(in oklab, var(--fg) 5%, transparent);
-        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+        background: color-mix(in oklab, var(--fg) 8%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 20%, transparent);
         border-radius: 8px;
         padding: 12px 16px;
         margin: 8px 0;
         overflow-x: auto;
         font-family: 'Fira Code', 'Monaco', 'Consolas', 'Courier New', monospace;
         font-size: 0.9em;
-        line-height: 1.4;
+        line-height: 1.5;
+        color: var(--fg);
       }
 
       .chat-message pre code {
@@ -371,49 +377,58 @@
         border: none;
         padding: 0;
         color: var(--fg);
+        font-weight: 500;
       }
 
       /* Complexity tags and badges */
       .complexity-tag {
         display: inline-block;
-        background: color-mix(in oklab, var(--brand) 15%, transparent);
+        background: color-mix(in oklab, var(--brand) 20%, transparent);
         color: var(--brand);
         padding: 4px 8px;
         border-radius: 12px;
         font-size: 11px;
-        font-weight: 600;
+        font-weight: 700;
         margin: 2px 4px 2px 0;
-        border: 1px solid color-mix(in oklab, var(--brand) 25%, transparent);
+        border: 1px solid color-mix(in oklab, var(--brand) 30%, transparent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
-      .complexity-tag.time { background: color-mix(in oklab, #10b981 15%, transparent); color: #10b981; border-color: color-mix(in oklab, #10b981 25%, transparent); }
-      .complexity-tag.space { background: color-mix(in oklab, #f59e0b 15%, transparent); color: #f59e0b; border-color: color-mix(in oklab, #f59e0b 25%, transparent); }
-      .complexity-tag.algorithm { background: color-mix(in oklab, #8b5cf6 15%, transparent); color: #8b5cf6; border-color: color-mix(in oklab, #8b5cf6 25%, transparent); }
+      .complexity-tag.time { background: color-mix(in oklab, #10b981 20%, transparent); color: #10b981; border-color: color-mix(in oklab, #10b981 30%, transparent); }
+      .complexity-tag.space { background: color-mix(in oklab, #f59e0b 20%, transparent); color: #f59e0b; border-color: color-mix(in oklab, #f59e0b 30%, transparent); }
+      .complexity-tag.algorithm { background: color-mix(in oklab, #8b5cf6 20%, transparent); color: #8b5cf6; border-color: color-mix(in oklab, #8b5cf6 30%, transparent); }
 
       /* Callout boxes for key takeaways */
       .callout-box {
-        background: color-mix(in oklab, var(--brand) 8%, transparent);
+        background: color-mix(in oklab, var(--brand) 12%, transparent);
         border-left: 4px solid var(--brand);
         padding: 12px 16px;
         margin: 12px 0;
         border-radius: 0 8px 8px 0;
         font-size: 14px;
         line-height: 1.5;
+        color: var(--fg);
+        font-weight: 500;
+        border: 1px solid color-mix(in oklab, var(--brand) 20%, transparent);
       }
 
       .callout-box.key-idea {
-        background: color-mix(in oklab, #10b981 8%, transparent);
+        background: color-mix(in oklab, #10b981 12%, transparent);
         border-left-color: #10b981;
+        border-color: color-mix(in oklab, #10b981 20%, transparent);
       }
 
       .callout-box.warning {
-        background: color-mix(in oklab, #f59e0b 8%, transparent);
+        background: color-mix(in oklab, #f59e0b 12%, transparent);
         border-left-color: #f59e0b;
+        border-color: color-mix(in oklab, #f59e0b 20%, transparent);
       }
 
       .callout-box.info {
-        background: color-mix(in oklab, #3b82f6 8%, transparent);
+        background: color-mix(in oklab, #3b82f6 12%, transparent);
         border-left-color: #3b82f6;
+        border-color: color-mix(in oklab, #3b82f6 20%, transparent);
       }
 
       /* Tooltip styling */
@@ -620,6 +635,143 @@
           right: 8px;
           padding: 6px;
         }
+      }
+
+      /* Enhanced readability for all themes */
+      .chat-message strong {
+        color: var(--fg);
+        font-weight: 700;
+      }
+
+      .chat-message em {
+        color: var(--fg);
+        font-style: italic;
+        font-weight: 500;
+      }
+
+      .chat-message p {
+        color: var(--fg);
+        margin: 8px 0;
+        line-height: 1.6;
+      }
+
+      .chat-message ul, .chat-message ol {
+        color: var(--fg);
+        margin: 8px 0;
+        padding-left: 20px;
+      }
+
+      .chat-message li {
+        color: var(--fg);
+        margin: 4px 0;
+        line-height: 1.5;
+      }
+
+      /* Ensure proper contrast for all text elements */
+      .card-title, .card-subtitle, .muted {
+        color: var(--fg);
+      }
+
+      .btn {
+        color: white;
+        font-weight: 600;
+      }
+
+      .btn.secondary {
+        color: var(--fg);
+        font-weight: 600;
+      }
+
+      /* Focus mode specific readability improvements */
+      [data-theme="focus"] .chat-message.bot {
+        background: #1a1a1a;
+        border: 1px solid #333333;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 255, 136, 0.1);
+      }
+
+      [data-theme="focus"] .chat-message.user {
+        background: #00ff88;
+        border: 1px solid #00ff88;
+        color: #000000;
+        font-weight: 600;
+      }
+
+      [data-theme="focus"] .chat-message code {
+        background: #333333;
+        color: #00ff88;
+        border: 1px solid #555555;
+        font-weight: 700;
+      }
+
+      [data-theme="focus"] .chat-message pre {
+        background: #1a1a1a;
+        border: 1px solid #333333;
+        color: #ffffff;
+      }
+
+      [data-theme="focus"] .chat-message pre code {
+        background: none;
+        color: #ffffff;
+        font-weight: 600;
+      }
+
+      [data-theme="focus"] .complexity-tag {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        font-weight: 700;
+      }
+
+      [data-theme="focus"] .callout-box {
+        background: rgba(0, 255, 136, 0.1);
+        border: 1px solid rgba(0, 255, 136, 0.3);
+        color: #ffffff;
+        font-weight: 600;
+      }
+
+      [data-theme="focus"] .callout-box.key-idea {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.4);
+      }
+
+      [data-theme="focus"] .callout-box.warning {
+        background: rgba(245, 158, 11, 0.15);
+        border-color: rgba(245, 158, 11, 0.4);
+      }
+
+      [data-theme="focus"] .callout-box.info {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.4);
+      }
+
+      [data-theme="focus"] .card {
+        background: #1a1a1a;
+        border: 1px solid #333333;
+        box-shadow: 0 4px 20px rgba(0, 255, 136, 0.1);
+      }
+
+      [data-theme="focus"] .field, [data-theme="focus"] textarea {
+        background: #1a1a1a;
+        border: 1px solid #333333;
+        color: #ffffff;
+      }
+
+      [data-theme="focus"] .field:focus, [data-theme="focus"] textarea:focus {
+        border-color: #00ff88;
+        background: #1a1a1a;
+        box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+      }
+
+      [data-theme="focus"] .btn.secondary {
+        background: #333333;
+        border: 1px solid #555555;
+        color: #ffffff;
+      }
+
+      [data-theme="focus"] .btn.secondary:hover {
+        background: #444444;
+        border-color: #00ff88;
       }
 
 
