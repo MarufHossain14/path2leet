@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentContext = '';
     let conversationHistory = []; // Store all previous hints and responses
     let conversationMode = false; // Track if we're in conversation mode
+    let currentMessageType = 'general'; // Track current message type
 
     // --- Timer Management ---
     let timerInterval = null;
@@ -265,20 +266,61 @@ document.addEventListener('DOMContentLoaded', () => {
      * A reusable function to add a new message to the chatBox.
      * @param {string} text - The text content of the message.
      * @param {string} sender - The sender of the message, either 'user' or 'bot'.
+     * @param {string} messageType - The type of message (hint, analyze, suggest, explain, optimize, general).
      * @returns {HTMLElement} - The newly created message div, so we can modify it later if needed.
      */
-    function displayMessage(text, sender) {
+    function displayMessage(text, sender, messageType = 'general') {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('chat-message');
         messageDiv.classList.add(sender);
 
-        // Handle newlines in messages for display
-        messageDiv.innerHTML = text.replace(/\n/g, '<br>'); // Use innerHTML for <br> tags
+        // Add message type indicator for bot messages
+        if (sender === 'bot' && messageType !== 'general') {
+            const typeDiv = document.createElement('div');
+            typeDiv.classList.add('message-type');
+            typeDiv.classList.add(messageType);
+            typeDiv.textContent = messageType.toUpperCase();
+            messageDiv.appendChild(typeDiv);
+        }
+
+        // Process text for enhanced formatting
+        const processedText = enhanceMessageFormatting(text);
+        const textDiv = document.createElement('div');
+        textDiv.innerHTML = processedText;
+        messageDiv.appendChild(textDiv);
 
         chatBox.appendChild(messageDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
 
         return messageDiv;
+    }
+
+    /**
+     * Enhance message formatting with code highlighting, complexity tags, and callout boxes
+     */
+    function enhanceMessageFormatting(text) {
+        let processedText = text;
+
+        // Convert inline code (backticks) to styled code
+        processedText = processedText.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Convert code blocks (triple backticks) to styled pre blocks
+        processedText = processedText.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+
+        // Add complexity tags for time/space complexity mentions
+        processedText = processedText.replace(/\bTime Complexity:\s*O\([^)]+\)/gi, '<span class="complexity-tag time">$&</span>');
+        processedText = processedText.replace(/\bSpace Complexity:\s*O\([^)]+\)/gi, '<span class="complexity-tag space">$&</span>');
+        processedText = processedText.replace(/\bAlgorithm:\s*[^<]+/gi, '<span class="complexity-tag algorithm">$&</span>');
+
+        // Convert key ideas to callout boxes
+        processedText = processedText.replace(/\*\*Key Idea:\*\*([^*]+)/gi, '<div class="callout-box key-idea"><strong>Key Idea:</strong>$1</div>');
+        processedText = processedText.replace(/\*\*Important:\*\*([^*]+)/gi, '<div class="callout-box warning"><strong>Important:</strong>$1</div>');
+        processedText = processedText.replace(/\*\*Note:\*\*([^*]+)/gi, '<div class="callout-box info"><strong>Note:</strong>$1</div>');
+
+        // Convert newlines to <br> tags
+        processedText = processedText.replace(/\n/g, '<br>');
+
+        return processedText;
     }
 
     // Helper to enable/disable input and button
@@ -298,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             conversationInput.focus();
         }
     }
+
 
     // Helper to switch between different UI modes
     function showNewProblemMode() {
@@ -395,6 +438,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Function to handle quick action buttons
+     */
+    function handleQuickAction(action) {
+        if (!currentProblem) {
+            displayMessage("Error: No current problem to discuss. Please start a new problem first.", 'bot');
+            return;
+        }
+
+        // Update active button
+        quickActionBtns.forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.querySelector(`[data-action="${action}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+
+        // Set message type
+        currentMessageType = action;
+
+        // Generate appropriate message based on action
+        let message = '';
+        switch (action) {
+            case 'hint':
+                message = 'Can you give me a hint for this problem?';
+                break;
+            case 'analyze':
+                message = 'Can you analyze my approach or code?';
+                break;
+            case 'suggest':
+                message = 'Can you suggest a different approach?';
+                break;
+            case 'explain':
+                message = 'Can you explain the key concepts for this problem?';
+                break;
+            case 'optimize':
+                message = 'How can I optimize my solution?';
+                break;
+            default:
+                message = 'Can you help me with this problem?';
+        }
+
+        // Set the message in the input
+        conversationInput.value = message;
+        conversationInput.focus();
+
+        // Auto-send the message
+        handleConversationMessage();
+    }
+
+    /**
      * Function to handle ongoing conversation messages
      */
     async function handleConversationMessage() {
@@ -412,8 +504,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Display the user's message
         displayMessage(userMessage, 'user');
 
-        // Clear the input
+        // Clear the input and reset height
         conversationInput.value = '';
+        conversationInput.style.height = 'auto';
+        autoExpandTextarea(conversationInput);
 
         // Disable controls and display loading message
         setConversationState(true);
@@ -425,7 +519,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const requestBody = {
                 message: userMessage,
                 problemName: currentProblem,
-                conversationHistory: conversationHistory
+                conversationHistory: conversationHistory,
+                messageType: currentMessageType
             };
 
             const response = await fetch('/conversation', {
@@ -449,13 +544,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Display the bot's response
             const botResponse = data.response;
-            displayMessage(botResponse, 'bot');
+            displayMessage(botResponse, 'bot', currentMessageType);
 
             // Store this interaction in conversation history
             conversationHistory.push({
                 userInput: userMessage,
-                botResponse: botResponse
+                botResponse: botResponse,
+                messageType: currentMessageType
             });
+
+
+            // Reset message type
+            currentMessageType = 'general';
 
         } catch (error) {
             loadingMessage.remove();
@@ -537,8 +637,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 conversationHistory.push({
                     userInput: userInput,
                     context: context,
-                    botResponse: botResponse
+                    botResponse: botResponse,
+                    messageType: 'hint'
                 });
+
             }
 
         } catch (error) {
@@ -593,6 +695,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // New problem from conversation button
     newProblemFromConvo.addEventListener('click', showInputMode);
 
+
+    // Quick action buttons
+    const quickActionBtns = document.querySelectorAll('.quick-action-btn');
+    quickActionBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const action = btn.dataset.action;
+            handleQuickAction(action);
+        });
+    });
+
     // Theme select event listener
     themeSelect.addEventListener('change', changeTheme);
 
@@ -637,6 +750,28 @@ document.addEventListener('DOMContentLoaded', () => {
         else headerEl.classList.remove('stuck');
     };
     window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Auto-expand textarea functionality
+    function autoExpandTextarea(textarea) {
+        if (!textarea) return;
+
+        // Reset height to auto to get the correct scrollHeight
+        textarea.style.height = 'auto';
+
+        // Set height to scrollHeight (content height)
+        const newHeight = Math.min(textarea.scrollHeight, 240); // Max 240px
+        textarea.style.height = newHeight + 'px';
+    }
+
+    // Add auto-expand to conversation input
+    if (conversationInput) {
+        conversationInput.addEventListener('input', function() {
+            autoExpandTextarea(this);
+        });
+
+        // Initialize height
+        autoExpandTextarea(conversationInput);
+    }
 
     // --- Initial Setup ---
     initTheme(); // Initialize theme on page load

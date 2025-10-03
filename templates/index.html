@@ -163,8 +163,72 @@
       }
 
       /* Main layout */
-      .main { max-width: 1100px; margin: 18px auto 28px; padding: 0 16px; display: grid; gap: 16px; grid-template-columns: 1.6fr 1fr; }
-      @media (max-width: 980px) { .main { grid-template-columns: 1fr; } }
+      .main {
+        max-width: 1100px;
+        margin: 20px auto 32px;
+        padding: 0 20px;
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1.6fr 1fr;
+      }
+      @media (max-width: 980px) {
+        .main {
+          grid-template-columns: 1fr;
+          gap: 16px;
+          padding: 0 16px;
+        }
+      }
+      @media (max-width: 640px) {
+        .main {
+          padding: 0 12px;
+          gap: 12px;
+        }
+        .card-body {
+          padding: 16px;
+        }
+        .card-head {
+          padding: 12px 16px 0 16px;
+        }
+        .quick-actions {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          padding: 12px;
+        }
+        .quick-action-btn {
+          padding: 8px 10px;
+          font-size: 11px;
+          min-height: 36px;
+        }
+        .conversation-actions {
+          flex-direction: row;
+          gap: 8px;
+        }
+        .conversation-actions .btn {
+          flex: 1;
+          padding: 10px 14px;
+          font-size: 13px;
+        }
+        .chat-message {
+          max-width: 95%;
+          padding: 12px 14px;
+        }
+        .conversation-textarea-full {
+          min-height: 70px;
+          max-height: 180px;
+          font-size: 14px;
+          padding: 14px 16px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .conversation-actions .btn {
+          padding: 8px 12px;
+          font-size: 12px;
+        }
+        .conversation-actions {
+          gap: 6px;
+        }
+      }
 
       .card {
         background: var(--card);
@@ -172,9 +236,23 @@
         border-radius: 16px;
         box-shadow: 0 10px 30px -15px rgba(0,0,0,0.35);
       }
-      .card-head { padding: 14px 14px 0 14px; display: flex; justify-content: space-between; align-items: center; }
-      .card-title { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
-      .card-body { padding: 14px; }
+      .card-head {
+        padding: 16px 20px 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      .card-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .card-body {
+        padding: 20px;
+      }
 
       /* Chat panel */
       .chat-box {
@@ -186,19 +264,223 @@
         border: 1px dashed color-mix(in oklab, var(--fg) 12%, transparent);
       }
 
+      /* Chat message styling */
+      .chat-message {
+        margin-bottom: 20px;
+        padding: 18px 22px;
+        border-radius: 16px;
+        max-width: 85%;
+        word-wrap: break-word;
+        line-height: 1.6;
+        position: relative;
+        font-size: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .chat-message.user {
+        background: linear-gradient(135deg, color-mix(in oklab, var(--brand) 20%, transparent) 0%, color-mix(in oklab, var(--brand) 10%, transparent) 100%);
+        border: 1px solid color-mix(in oklab, var(--brand) 30%, transparent);
+        margin-left: auto;
+        margin-right: 0;
+        box-shadow: 0 4px 20px rgba(110, 168, 254, 0.15);
+        position: relative;
+      }
+
+      .chat-message.user::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -8px;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid color-mix(in oklab, var(--brand) 30%, transparent);
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+      }
+
+      .chat-message.bot {
+        background: linear-gradient(135deg, color-mix(in oklab, var(--card) 100%, transparent) 0%, color-mix(in oklab, var(--card) 95%, transparent) 100%);
+        border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+        margin-left: 0;
+        margin-right: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+
+      .chat-message.bot::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: -8px;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-right: 8px solid color-mix(in oklab, var(--fg) 12%, transparent);
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+      }
+
+      .chat-message.loading {
+        opacity: 0.7;
+        font-style: italic;
+      }
+
+      .message-type {
+        font-size: 10px;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--muted);
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+      }
+
+      .message-type.hint { color: #f59e0b; }
+      .message-type.analyze { color: #3b82f6; }
+      .message-type.suggest { color: #10b981; }
+      .message-type.explain { color: #8b5cf6; }
+      .message-type.optimize { color: #ef4444; }
+
+      /* Code and technical content styling */
+      .chat-message code {
+        background: color-mix(in oklab, var(--fg) 8%, transparent);
+        color: var(--brand);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Fira Code', 'Monaco', 'Consolas', 'Courier New', monospace;
+        font-size: 0.9em;
+        font-weight: 500;
+        border: 1px solid color-mix(in oklab, var(--brand) 20%, transparent);
+      }
+
+      .chat-message pre {
+        background: color-mix(in oklab, var(--fg) 5%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px 0;
+        overflow-x: auto;
+        font-family: 'Fira Code', 'Monaco', 'Consolas', 'Courier New', monospace;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+
+      .chat-message pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        color: var(--fg);
+      }
+
+      /* Complexity tags and badges */
+      .complexity-tag {
+        display: inline-block;
+        background: color-mix(in oklab, var(--brand) 15%, transparent);
+        color: var(--brand);
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin: 2px 4px 2px 0;
+        border: 1px solid color-mix(in oklab, var(--brand) 25%, transparent);
+      }
+
+      .complexity-tag.time { background: color-mix(in oklab, #10b981 15%, transparent); color: #10b981; border-color: color-mix(in oklab, #10b981 25%, transparent); }
+      .complexity-tag.space { background: color-mix(in oklab, #f59e0b 15%, transparent); color: #f59e0b; border-color: color-mix(in oklab, #f59e0b 25%, transparent); }
+      .complexity-tag.algorithm { background: color-mix(in oklab, #8b5cf6 15%, transparent); color: #8b5cf6; border-color: color-mix(in oklab, #8b5cf6 25%, transparent); }
+
+      /* Callout boxes for key takeaways */
+      .callout-box {
+        background: color-mix(in oklab, var(--brand) 8%, transparent);
+        border-left: 4px solid var(--brand);
+        padding: 12px 16px;
+        margin: 12px 0;
+        border-radius: 0 8px 8px 0;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .callout-box.key-idea {
+        background: color-mix(in oklab, #10b981 8%, transparent);
+        border-left-color: #10b981;
+      }
+
+      .callout-box.warning {
+        background: color-mix(in oklab, #f59e0b 8%, transparent);
+        border-left-color: #f59e0b;
+      }
+
+      .callout-box.info {
+        background: color-mix(in oklab, #3b82f6 8%, transparent);
+        border-left-color: #3b82f6;
+      }
+
+      /* Tooltip styling */
+      .quick-action-btn[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: color-mix(in oklab, var(--fg) 90%, transparent);
+        color: var(--bg);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        z-index: 1000;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        border: 1px solid color-mix(in oklab, var(--fg) 20%, transparent);
+      }
+
+      .quick-action-btn[title]:hover::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-top-color: color-mix(in oklab, var(--fg) 90%, transparent);
+        margin-bottom: 4px;
+        z-index: 1000;
+      }
+
+      /* Enhanced chat box styling */
+      .chat-box {
+        background: linear-gradient(135deg, color-mix(in oklab, var(--card) 95%, transparent) 0%, color-mix(in oklab, var(--card) 90%, transparent) 100%);
+        border: 1px solid color-mix(in oklab, var(--fg) 15%, transparent);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+
       /* Input row */
-      .input-row { display: grid; gap: 10px; grid-template-columns: 1fr auto; align-items: center; }
+      .input-row {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        margin-bottom: 0;
+      }
+
+      .input-row .btn {
+        height: fit-content;
+        align-self: center;
+      }
       .field, textarea {
         width: 100%;
         border-radius: 12px;
         border: 1px solid color-mix(in oklab, var(--fg) 20%, transparent);
         background: color-mix(in oklab, var(--card) 95%, transparent);
         color: var(--fg);
-        padding: 12px 14px;
+        padding: 14px 16px;
         font-size: 14px;
         box-sizing: border-box;
         vertical-align: top;
         transition: border-color 0.2s ease, background-color 0.2s ease;
+        font-family: inherit;
       }
       .field:focus, textarea:focus {
         outline: none;
@@ -225,33 +507,141 @@
         font-family: inherit;
       }
 
-      /* Conversation actions (vertical button stack) */
+      /* Full-width conversation textarea */
+      .conversation-textarea-full {
+        width: 100%;
+        min-height: 80px;
+        max-height: 240px;
+        resize: vertical;
+        line-height: 1.6;
+        font-family: inherit;
+        box-sizing: border-box;
+        padding: 16px 18px;
+        font-size: 15px;
+        border-radius: 12px;
+        border: 2px solid color-mix(in oklab, var(--fg) 15%, transparent);
+        background: color-mix(in oklab, var(--card) 98%, transparent);
+        transition: all 0.2s ease;
+      }
+
+      .conversation-textarea-full:focus {
+        outline: none;
+        border-color: var(--brand);
+        background: var(--card);
+        box-shadow: 0 0 0 4px var(--ring), 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .conversation-textarea-full::placeholder {
+        color: color-mix(in oklab, var(--muted) 70%, transparent);
+        font-size: 14px;
+      }
+
+      /* Quick action buttons */
+      .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: linear-gradient(135deg, color-mix(in oklab, var(--card) 90%, transparent) 0%, color-mix(in oklab, var(--card) 85%, transparent) 100%);
+        border-radius: 16px;
+        border: 1px solid color-mix(in oklab, var(--fg) 10%, transparent);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+
+      .quick-action-btn {
+        appearance: none;
+        border: 1px solid color-mix(in oklab, var(--fg) 15%, transparent);
+        background: linear-gradient(135deg, color-mix(in oklab, var(--card) 98%, transparent) 0%, color-mix(in oklab, var(--card) 95%, transparent) 100%);
+        color: var(--fg);
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        text-align: center;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .quick-action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+      }
+
+      .quick-action-btn:hover::before {
+        left: 100%;
+      }
+
+      .quick-action-btn:hover {
+        background: color-mix(in oklab, var(--brand) 15%, transparent);
+        border-color: var(--brand);
+        transform: translateY(-1px);
+      }
+
+      .quick-action-btn:active {
+        transform: translateY(0);
+      }
+
+      .quick-action-btn.active {
+        background: var(--brand);
+        color: #fff;
+        border-color: var(--brand);
+      }
+
+      /* Conversation actions (horizontal button row) */
       .conversation-actions {
         display: flex;
-        flex-direction: column;
-        gap: 8px;
-        min-width: 120px;
-      }
-
-      /* Adjust input-row for conversation area */
-      .conversation-textarea-row {
-        display: grid;
+        flex-direction: row;
         gap: 12px;
-        grid-template-columns: 1fr auto;
-        align-items: start;
+        align-items: center;
+        justify-content: flex-start;
+        margin-top: 0;
       }
       .btn {
-        appearance: none; border: none; cursor: pointer; font-weight: 600;
-        padding: 10px 14px; border-radius: 12px; font-size: 14px; color: #fff; background: var(--brand);
-        box-shadow: 0 6px 14px -6px var(--ring);
+        appearance: none;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #fff;
+        background: var(--brand);
+        transition: background 0.2s ease;
       }
-      .btn.secondary { color: var(--fg); background: transparent; border: 1px solid color-mix(in oklab, var(--fg) 14%, transparent); }
-      .btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+      .btn:hover {
+        background: color-mix(in oklab, var(--brand) 90%, #000);
+      }
+      .btn.secondary {
+        color: var(--fg);
+        background: color-mix(in oklab, var(--card) 95%, transparent);
+        border: 1px solid color-mix(in oklab, var(--fg) 20%, transparent);
+      }
+      .btn.secondary:hover {
+        background: color-mix(in oklab, var(--fg) 8%, transparent);
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: 2px;
+      }
 
       /* Utilities */
-      .muted { color: var(--muted); font-size: 13px; }
-      .stack { display: grid; gap: 8px; }
-      .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      .muted { color: var(--muted); font-size: 13px; line-height: 1.4; }
+      .stack { display: grid; gap: 16px; }
+      .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
       /* Timer chip */
       .timer-chip { display: inline-flex; gap: 8px; align-items: center; border-radius: 999px; padding: 8px 10px; border: 1px solid color-mix(in oklab, var(--fg) 12%, transparent); }
@@ -376,14 +766,22 @@
 
             <!-- Conversation input area (shown after first hint) -->
             <form id="conversationArea" class="stack" role="form" aria-label="Conversation input form" style="display: none;">
-              <div class="input-row">
-                <textarea id="conversationInput" class="field conversation-textarea" placeholder="Ask a follow-up question, share your approach, or explain what you're stuck on..." rows="3" aria-describedby="conversation-help"></textarea>
-                <div class="conversation-actions">
-                  <button id="sendMessageBtn" type="submit" class="btn">Send</button>
-                  <button id="newProblemFromConvo" type="button" class="btn secondary">New problem</button>
-                </div>
+              <!-- Quick action buttons -->
+              <div class="quick-actions">
+                <button type="button" class="quick-action-btn" data-action="hint" title="Get a helpful hint to guide your thinking">💡 Get Hint</button>
+                <button type="button" class="quick-action-btn" data-action="analyze" title="Analyze your code or approach for feedback">🔍 Analyze Code</button>
+                <button type="button" class="quick-action-btn" data-action="suggest" title="Get alternative approaches to solve the problem">💭 Suggest Approach</button>
+                <button type="button" class="quick-action-btn" data-action="explain" title="Understand the underlying concepts and theory">📚 Explain Concept</button>
+                <button type="button" class="quick-action-btn" data-action="optimize" title="Improve your solution's time and space complexity">⚡ Optimize Solution</button>
               </div>
-              <small id="conversation-help" class="muted">💬 Continue the conversation or ask follow-up questions about the current problem</small>
+
+              <textarea id="conversationInput" class="field conversation-textarea-full" placeholder="Ask any question about the problem, share your code, or explain what you're stuck on..." rows="2" aria-describedby="conversation-help"></textarea>
+              <small id="conversation-help" class="muted">💬 Ask any question about the current problem or use quick actions above</small>
+
+              <div class="conversation-actions">
+                <button id="sendMessageBtn" type="submit" class="btn">Send</button>
+                <button id="newProblemFromConvo" type="button" class="btn secondary">New Problem</button>
+              </div>
             </form>
 
             <div id="newProblemArea" class="row" role="group" aria-label="Problem actions" style="display: none;">

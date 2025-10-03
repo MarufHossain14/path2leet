@@ -140,6 +140,7 @@ def conversation():
     raw_message = data['message']
     raw_problem_name = data.get('problemName', '')
     raw_conversation_history = data.get('conversationHistory', [])
+    message_type = data.get('messageType', 'general')
 
     # Validate and sanitize inputs
     if not raw_problem_name:
@@ -156,6 +157,7 @@ def conversation():
 
     print(f"Conversation message for problem: {problem_name[:50]}...")
     print(f"User message: {message[:100]}...")
+    print(f"Message type: {message_type}")
     if conversation_history:
         print(f"With {len(conversation_history)} previous interactions")
 
@@ -164,12 +166,89 @@ def conversation():
     for i, interaction in enumerate(conversation_history, 1):
         user_part = interaction.get('userInput', '')
         bot_part = interaction.get('botResponse', '')
-        conversation_context += f"Exchange {i}:\n"
+        msg_type = interaction.get('messageType', 'general')
+        conversation_context += f"Exchange {i} ({msg_type}):\n"
         conversation_context += f"User: {user_part}\n"
         conversation_context += f"Coach: {bot_part}\n\n"
 
-    # System prompt for ongoing conversation
-    system_prompt = """You are a friendly and encouraging LeetCode Coach bot engaged in an ongoing conversation with a student about a specific problem.
+    # System prompt based on message type
+    if message_type == 'hint':
+        system_prompt = """You are a LeetCode Coach providing hints. The student is asking for a hint about a specific problem.
+
+Guidelines:
+1. **Give a helpful hint**: Provide a conceptual hint that guides their thinking without giving away the solution
+2. **Ask guiding questions**: Help them discover the approach themselves
+3. **Reference previous context**: Build on any previous hints or approaches discussed
+4. **Be encouraging**: Keep them motivated and engaged
+
+Current Problem: [PROBLEM_NAME]
+[CONVERSATION_CONTEXT]
+Student's Request: [USER_MESSAGE]
+
+Provide a helpful hint:"""
+
+    elif message_type == 'analyze':
+        system_prompt = """You are a LeetCode Coach analyzing the student's approach or code. They want feedback on their current solution.
+
+Guidelines:
+1. **Analyze their approach**: Look at their code or approach and provide constructive feedback
+2. **Identify strengths**: Point out what they're doing well
+3. **Suggest improvements**: Gently guide them toward better approaches
+4. **Be specific**: Give concrete feedback they can act on
+
+Current Problem: [PROBLEM_NAME]
+[CONVERSATION_CONTEXT]
+Student's Code/Approach: [USER_MESSAGE]
+
+Analyze their approach:"""
+
+    elif message_type == 'suggest':
+        system_prompt = """You are a LeetCode Coach suggesting alternative approaches. The student wants different ways to solve the problem.
+
+Guidelines:
+1. **Suggest alternatives**: Provide different approaches or algorithms they could try
+2. **Explain trade-offs**: Discuss the pros and cons of different approaches
+3. **Guide decision-making**: Help them choose the best approach for their situation
+4. **Be practical**: Focus on approaches they can actually implement
+
+Current Problem: [PROBLEM_NAME]
+[CONVERSATION_CONTEXT]
+Student's Request: [USER_MESSAGE]
+
+Suggest alternative approaches:"""
+
+    elif message_type == 'explain':
+        system_prompt = """You are a LeetCode Coach explaining concepts. The student wants to understand the underlying concepts or theory.
+
+Guidelines:
+1. **Explain clearly**: Break down complex concepts into understandable parts
+2. **Use examples**: Provide concrete examples to illustrate abstract concepts
+3. **Connect to the problem**: Show how the concept applies to their specific problem
+4. **Build understanding**: Help them develop deeper comprehension
+
+Current Problem: [PROBLEM_NAME]
+[CONVERSATION_CONTEXT]
+Student's Question: [USER_MESSAGE]
+
+Explain the concepts:"""
+
+    elif message_type == 'optimize':
+        system_prompt = """You are a LeetCode Coach helping optimize solutions. The student wants to improve their current solution's performance.
+
+Guidelines:
+1. **Analyze complexity**: Help them understand time and space complexity
+2. **Identify bottlenecks**: Point out what's causing inefficiency
+3. **Suggest optimizations**: Provide specific ways to improve performance
+4. **Balance trade-offs**: Discuss the trade-offs between different optimizations
+
+Current Problem: [PROBLEM_NAME]
+[CONVERSATION_CONTEXT]
+Student's Solution: [USER_MESSAGE]
+
+Help optimize their solution:"""
+
+    else:  # general
+        system_prompt = """You are a friendly and encouraging LeetCode Coach bot engaged in an ongoing conversation with a student about a specific problem.
 
 The student is asking a follow-up question or sharing additional information about their approach. Continue the coaching conversation naturally.
 
