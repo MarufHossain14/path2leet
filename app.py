@@ -7,15 +7,20 @@ import html
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, abort
+from functools import wraps
+from datetime import datetime, timedelta
 
 # Load environment variables from .env file
 load_dotenv()
 
+# Validate API key exists
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("GEMINI_API_KEY environment variable is not set. Please add it to your .env file.")
+
 # Configure the Gemini API with your API key
-# genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-# Using getenv for clarity and consistency
-genai.configure(api_key=os.getenv("GEMINI_API_KEY")) # os.getenv is safer, returns None if not found
+genai.configure(api_key=api_key)
 
 # Initialize the Generative Model (using the model that worked with curl)
 # Set temperature to 0.0 for less creative, more direct answers based on instructions
@@ -28,6 +33,74 @@ model = genai.GenerativeModel(
 )
 
 app = Flask(__name__)
+
+# --- Security Configuration ---
+# Add security headers to all responses
+@app.after_request
+def add_security_headers(response):
+    """Add security headers to prevent common attacks"""
+    # Prevent clickjacking
+    response.headers['X-Frame-Options'] = 'DENY'
+    # Prevent MIME type sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    # Enable XSS protection
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    # Content Security Policy - strict policy
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:; "
+        "connect-src 'self';"
+    )
+    # Referrer policy
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # Disable caching for sensitive endpoints
+    if request.path.startswith('/conversation') or request.path.startswith('/get_hint'):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+        response.headers['Pragma'] = 'no-cache'
+    return response
+
+# Rate limiting storage (simple in-memory for now)
+# In production, use Redis or a proper rate limiting library
+rate_limit_storage = {}
+
+def rate_limit(max_requests=10, window_seconds=60):
+    """Simple rate limiting decorator"""
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            # Get client IP
+            client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+            if not client_ip:
+                client_ip = 'unknown'
+
+            # Get current time
+            now = datetime.now()
+            key = f"{client_ip}:{f.__name__}"
+
+            # Clean old entries
+            if key in rate_limit_storage:
+                rate_limit_storage[key] = [
+                    req_time for req_time in rate_limit_storage[key]
+                    if now - req_time < timedelta(seconds=window_seconds)
+                ]
+            else:
+                rate_limit_storage[key] = []
+
+            # Check rate limit
+            if len(rate_limit_storage[key]) >= max_requests:
+                return jsonify({
+                    'error': 'Rate limit exceeded. Please wait a moment before trying again.'
+                }), 429
+
+            # Add this request
+            rate_limit_storage[key].append(now)
+
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 
 # --- Security Functions ---
 def sanitize_input(text):
@@ -129,8 +202,13 @@ def index():
     return render_template('index.html')
 
 @app.route('/conversation', methods=['POST'])
+@rate_limit(max_requests=20, window_seconds=60)  # Max 20 requests per minute
 def conversation():
     """Handle ongoing conversation messages"""
+    # Validate content type
+    if not request.is_json:
+        return jsonify({'error': 'Content-Type must be application/json'}), 400
+
     data = request.json
 
     if not data or 'message' not in data:
@@ -141,6 +219,11 @@ def conversation():
     raw_problem_name = data.get('problemName', '')
     raw_conversation_history = data.get('conversationHistory', [])
     message_type = data.get('messageType', 'general')
+
+    # Validate message type
+    allowed_types = ['hint', 'analyze', 'suggest', 'explain', 'optimize', 'general']
+    if message_type not in allowed_types:
+        return jsonify({'error': 'Invalid message type'}), 400
 
     # Validate and sanitize inputs
     if not raw_problem_name:
@@ -274,15 +357,30 @@ Respond as the Coach in this ongoing conversation:"""
     # Interact with Gemini API
     try:
         response_gemini = model.generate_content(prompt_text)
+
+        # Check if response was blocked for safety reasons
+        if not response_gemini.text:
+            print(f"Gemini API returned empty response. Prompt feedback: {response_gemini.prompt_feedback}")
+            return jsonify({
+                'error': 'The request was blocked due to safety filters. Please rephrase your question.'
+            }), 400
+
         ai_full_response = response_gemini.text
         print(f"Gemini conversation response:\n{ai_full_response}")
 
         # For conversation responses, we just return the response as-is
         response_text = ai_full_response.strip()
 
+        # Validate response length
+        if len(response_text) > 5000:
+            response_text = response_text[:5000] + "..."
+
     except Exception as e:
         print(f"Error calling Gemini API for conversation: {e}")
-        response_text = "I'm sorry, I encountered an error. Could you please try asking your question again?"
+        # Don't expose internal error details to user
+        return jsonify({
+            'error': 'I encountered an error processing your request. Please try again.'
+        }), 500
 
     # Prepare the response
     response_for_frontend = {
@@ -292,7 +390,12 @@ Respond as the Coach in this ongoing conversation:"""
     return jsonify(response_for_frontend)
 
 @app.route('/get_hint', methods=['POST'])
+@rate_limit(max_requests=15, window_seconds=60)  # Max 15 requests per minute
 def get_hint():
+    # Validate content type
+    if not request.is_json:
+        return jsonify({'error': 'Content-Type must be application/json'}), 400
+
     data = request.json
 
     if not data or 'problemName' not in data:
@@ -303,6 +406,11 @@ def get_hint():
     raw_context = data.get('context', '').strip()
     raw_conversation_history = data.get('conversationHistory', [])
     request_type = data.get('requestType', 'first_hint')
+
+    # Validate request type
+    allowed_request_types = ['first_hint', 'another_hint']
+    if request_type not in allowed_request_types:
+        return jsonify({'error': 'Invalid request type'}), 400
 
     # Validate problem name
     is_valid, problem_result = validate_problem_name(raw_problem_name)
@@ -394,9 +502,20 @@ PREVIOUS HINTS: [PREVIOUS_HINTS]"""
         # Generate content using the model with the improved prompt structure
         response_gemini = model.generate_content(prompt_text)
 
+        # Check if response was blocked for safety reasons
+        if not response_gemini.text:
+            print(f"Gemini API returned empty response. Prompt feedback: {response_gemini.prompt_feedback}")
+            return jsonify({
+                'error': 'The request was blocked due to safety filters. Please rephrase your question.'
+            }), 400
+
         # Extract the text from the AI's response
         ai_full_response = response_gemini.text
         print(f"Gemini raw response:\n{ai_full_response}")
+
+        # Validate response length
+        if len(ai_full_response) > 5000:
+            ai_full_response = ai_full_response[:5000] + "..."
 
         # Parse the AI's response to separate hint and practice problem
         # Check for the "I'm not familiar" phrase first, as it's an exception case
@@ -415,8 +534,10 @@ PREVIOUS HINTS: [PREVIOUS_HINTS]"""
     except Exception as e:
         # Catch any errors during API call or response parsing
         print(f"Error calling Gemini API or parsing response: {e}")
-        hint_text = "I'm sorry, I encountered an error trying to get a hint for you. Please try again in a moment."
-        practice_problem_text = ""
+        # Don't expose internal error details to user
+        return jsonify({
+            'error': 'I encountered an error processing your request. Please try again.'
+        }), 500
 
     # Prepare the response to send back to the frontend
     response_for_frontend = {

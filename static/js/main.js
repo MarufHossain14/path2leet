@@ -296,23 +296,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * HTML escape function to prevent XSS attacks
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    /**
      * Enhance message formatting with code highlighting, complexity tags, and callout boxes
+     * SECURITY: All user content is escaped before applying formatting
      */
     function enhanceMessageFormatting(text) {
-        let processedText = text;
+        // First, escape ALL HTML to prevent XSS
+        let processedText = escapeHtml(text);
 
-        // Convert inline code (backticks) to styled code
+        // Convert inline code (backticks) to styled code - content already escaped
         processedText = processedText.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-        // Convert code blocks (triple backticks) to styled pre blocks
+        // Convert code blocks (triple backticks) to styled pre blocks - content already escaped
         processedText = processedText.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
 
-        // Add complexity tags for time/space complexity mentions
+        // Add complexity tags for time/space complexity mentions - content already escaped
         processedText = processedText.replace(/\bTime Complexity:\s*O\([^)]+\)/gi, '<span class="complexity-tag time">$&</span>');
         processedText = processedText.replace(/\bSpace Complexity:\s*O\([^)]+\)/gi, '<span class="complexity-tag space">$&</span>');
         processedText = processedText.replace(/\bAlgorithm:\s*[^<]+/gi, '<span class="complexity-tag algorithm">$&</span>');
 
-        // Convert key ideas to callout boxes
+        // Convert key ideas to callout boxes - content already escaped
         processedText = processedText.replace(/\*\*Key Idea:\*\*([^*]+)/gi, '<div class="callout-box key-idea"><strong>Key Idea:</strong>$1</div>');
         processedText = processedText.replace(/\*\*Important:\*\*([^*]+)/gi, '<div class="callout-box warning"><strong>Important:</strong>$1</div>');
         processedText = processedText.replace(/\*\*Note:\*\*([^*]+)/gi, '<div class="callout-box info"><strong>Note:</strong>$1</div>');
